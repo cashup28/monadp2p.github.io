@@ -1,0 +1,11 @@
+# klasörler
+node_modules
+.next
+out
+
+# özel dosyalar
+.env
+.env.local
+
+# sistem dosyaları
+.DS_Store
