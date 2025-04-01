@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useUser } from '@/context/UserContext';
+import BackButton from '@/components/BackButton';
 
 export default function ProcessOrderPage() {
   const router = useRouter();
@@ -52,7 +53,6 @@ export default function ProcessOrderPage() {
 
       if (res.ok) {
         setMessage(data.message || 'Takas başarılı!');
-        // updateUser() gibi bir fonksiyon tanımlamadığın için burada bir şey çağırmaya gerek yok
       } else {
         setMessage(data.error || 'Takas işlemi başarısız.');
       }
@@ -66,6 +66,7 @@ export default function ProcessOrderPage() {
 
   return (
     <div className="p-4 text-white bg-black min-h-screen">
+      <BackButton />
       <h1 className="text-xl font-bold mb-4 text-purple-400">Emri Onayla</h1>
 
       <div className="border p-4 rounded-lg bg-gray-800">

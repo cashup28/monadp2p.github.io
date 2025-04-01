@@ -1,5 +1,5 @@
-// /pages/admin.js
 import { useEffect, useState } from 'react';
+import BackButton from '@/components/BackButton';
 
 export default function AdminWithdrawPanel() {
   const [withdrawRequests, setWithdrawRequests] = useState([]);
@@ -31,11 +31,12 @@ export default function AdminWithdrawPanel() {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 text-white bg-black min-h-screen">
+      <BackButton />
       <h1 className="text-xl font-bold mb-4">Withdraw Talepleri</h1>
       <ul className="space-y-4">
         {withdrawRequests.map(req => (
-          <li key={req.id} className="border p-4 rounded-md">
+          <li key={req.id} className="border p-4 rounded-md bg-gray-800">
             <p><b>ID:</b> {req.id}</p>
             <p><b>Kullanıcı:</b> {req.userId}</p>
             <p><b>Miktar:</b> {req.amount} {req.token}</p>

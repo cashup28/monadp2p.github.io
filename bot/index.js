@@ -1,37 +1,24 @@
-require('dotenv').config(); // .env dosyasını yükle
+require("dotenv").config();
+const { Telegraf, Scenes, session } = require("telegraf");
+const stage = require("./botStage.js"); // ← .js UZANTISI MUTLAKA GEREKLİ
 
-console.log("Token:", process.env.BOT_TOKEN); // Token doğrulama
+const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 
-const { Telegraf } = require('telegraf');
-const bot = new Telegraf(process.env.BOT_TOKEN);
+// Orta katmanlar
+bot.use(session());
+bot.use(stage.middleware());
 
-// Komut: /start → Hoş geldin + Mini App bağlantısı
-bot.start((ctx) => {
-  ctx.reply('Merhaba! MonadP2P botuna hoş geldiniz. 👋');
+// Basit komutlar
+bot.start((ctx) => ctx.reply("🚀 Bot başlatıldı!"));
+bot.help((ctx) => ctx.reply("Komutlar: /start /help /test"));
+bot.command("test", (ctx) => ctx.reply("✅ Test başarılı!"));
+
+// Hata yakalama
+bot.catch((err, ctx) => {
+  console.error("❌ Hata:", err);
+  ctx.reply("Bir hata oluştu!");
 });
 
-// Komut: /start → inline butonla Mini App açma
-bot.command('start', (ctx) => {
-  ctx.reply('MonadP2P Mini App’i başlatmak için aşağıdaki butona tıklayın 👇', {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: '📱 Uygulamayı Başlat',
-            web_app: { url: 'https://monadp2p-github-io-ac.vercel.app/' }
-          }
-        ]
-      ]
-    }
-  });
-});
-
-// Botu başlat
-console.log("🚀 Bot başlatılıyor...");
-bot.launch()
-  .then(() => {
-    console.log("✅ MonadP2P Bot is running...");
-  })
-  .catch((err) => {
-    console.error("❌ Bot başlatılamadı:", err);
-  });
+// Başlat
+bot.launch();
+console.log("✅ Bot aktif! Ctrl+C ile durdurabilirsin.");

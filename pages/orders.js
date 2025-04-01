@@ -1,10 +1,12 @@
 import Head from 'next/head';
+import BackButton from '@/components/BackButton';
 
 export default function Orders() {
     return (
       <div className="min-h-screen bg-black text-white p-4">
+        <BackButton />
         <h2 className="text-2xl font-bold text-purple-500 mb-4">Açık Emirler</h2>
-  
+
         <div className="bg-purple-900 p-4 rounded-xl mb-2">
           <p>5 TON → 40 MONAD</p>
           <div className="flex gap-2 mt-2">
@@ -12,7 +14,7 @@ export default function Orders() {
             <button className="bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded-lg">Düzenle</button>
           </div>
         </div>
-  
+
         <h3 className="text-xl font-semibold mt-6 mb-2">Geçmiş İşlemler</h3>
         <div className="text-sm">
           <p>Deposit – 20 MONAD – Başarılı – ID: TX8347</p>
@@ -20,4 +22,4 @@ export default function Orders() {
         </div>
       </div>
     );
-  }
+}

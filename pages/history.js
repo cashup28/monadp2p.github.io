@@ -1,6 +1,6 @@
-// /pages/history.js
 import { useEffect, useState } from 'react';
 import { useUser } from '@/context/UserContext';
+import BackButton from '@/components/BackButton';
 
 export default function HistoryPage() {
   const { userId } = useUser();
@@ -46,6 +46,7 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4">
+      <BackButton />
       <h1 className="text-xl font-bold mb-4 text-purple-400">İşlem Geçmişi</h1>
 
       {history.length === 0 ? (

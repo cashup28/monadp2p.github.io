@@ -1,7 +1,7 @@
-// pages/create-order.js
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useUser } from '@/context/UserContext';
+import BackButton from '@/components/BackButton';
 
 export default function CreateOrder() {
   const {
@@ -54,6 +54,7 @@ export default function CreateOrder() {
 
   return (
     <div className="min-h-screen p-4 text-white bg-black">
+      <BackButton />
       <h1 className="text-2xl font-bold mb-4 text-purple-400">Takas Emri Oluştur</h1>
 
       {error && <p className="text-red-500">{error}</p>}
