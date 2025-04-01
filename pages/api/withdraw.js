@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { sendTelegramLog } from '../../../utils/telegram';
+import { sendTelegramLog } from '../../utils/telegram'; // ✅ DÜZELTİLDİ
 
 const filePath = path.join(process.cwd(), 'data', 'withdraws.json');
 
