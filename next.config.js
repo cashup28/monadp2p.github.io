@@ -1,12 +1,8 @@
-  /** @type {import('next').NextConfig} */
-  const nextConfig = {
-    output: 'export',
-    basePath: '',
-    images: {
-      unoptimized: true,
-    },
-    trailingSlash: true, // bu önemli!
-  }
-  
-  module.exports = nextConfig
-  
+// ✅ next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+};
+
+module.exports = nextConfig;

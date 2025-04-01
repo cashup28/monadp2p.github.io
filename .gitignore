@@ -1,11 +1,27 @@
-# klasörler
-node_modules
-.next
-out
-
-# özel dosyalar
+# ✅ Özel bilgiler – kesinlikle versiyonlanmasın
 .env
 .env.local
 
-# sistem dosyaları
+# ✅ Node.js modülleri
+node_modules/
+
+# ✅ Next.js build klasörü
+.next/
+out/
+
+# ✅ Sistem dosyaları (macOS / test)
 .DS_Store
+Thumbs.db
+txtfile
+
+# ✅ Log ve geçici dosyalar
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ✅ Vercel build cache
+.vercel/
+
+# ✅ Git klasörü (deploy için gerekmez)
+.git/

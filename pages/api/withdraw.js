@@ -1,63 +1,76 @@
-// /pages/api/withdraw.js
-import { promises as fs } from 'fs';
+import fs from 'fs';
 import path from 'path';
+import { sendTelegramLog } from './utils/telegram';
 
 const filePath = path.join(process.cwd(), 'data', 'withdraws.json');
 
-async function readWithdraws() {
+function readWithdraws() {
   try {
-    const data = await fs.readFile(filePath, 'utf-8');
+    const data = fs.readFileSync(filePath, 'utf-8');
     return JSON.parse(data);
-  } catch {
+  } catch (err) {
     return [];
   }
 }
 
-async function writeWithdraws(data) {
-  await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+function writeWithdraws(data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
-async function sendTelegramLog(message) {
-  const botToken = process.env.BOT_TOKEN;
-  const chatId = process.env.ADMIN_CHAT_ID;
-  if (!botToken || !chatId) return;
-
-  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-  await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text: message })
-  });
-}
-
-export default async function handler(req, res) {
+export default function handler(req, res) {
   if (req.method === 'GET') {
-    const data = await readWithdraws();
+    const data = readWithdraws();
     return res.status(200).json(data);
   }
 
   if (req.method === 'POST') {
-    const { id, action } = req.body;
-    const data = await readWithdraws();
-    const index = data.findIndex(w => w.id === id);
+    const { id, action, userId, token, amount, address } = req.body;
+    const data = readWithdraws();
 
-    if (index === -1) return res.status(404).json({ error: 'İşlem bulunamadı.' });
+    // 🔐 Admin işlemleri (onay/reddet)
+    if (id && action) {
+      const index = data.findIndex(w => w.id === id);
+      if (index === -1) return res.status(404).json({ error: 'İşlem bulunamadı.' });
 
-    if (action === 'approve') {
-      data[index].status = 'approved';
-    } else if (action === 'reject') {
-      data[index].status = 'rejected';
-    } else {
-      return res.status(400).json({ error: 'Geçersiz işlem türü.' });
+      if (action === 'approve') {
+        data[index].status = 'approved';
+      } else if (action === 'reject') {
+        data[index].status = 'rejected';
+      } else {
+        return res.status(400).json({ error: 'Geçersiz işlem türü.' });
+      }
+
+      writeWithdraws(data);
+
+      const logMsg = `🔔 Admin: Kullanıcı ${data[index].userId} (${data[index].amount} ${data[index].token}) için '${action}' işlemi yaptı.\nHedef: ${data[index].address}`;
+      sendTelegramLog(logMsg);
+
+      return res.status(200).json({ success: true, id, status: data[index].status });
     }
 
-    await writeWithdraws(data);
+    // ✅ Kullanıcı withdraw talebi oluşturuyor
+    if (userId && token && amount && address) {
+      const newWithdraw = {
+        id: Date.now().toString(),
+        userId,
+        token,
+        amount,
+        address,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
 
-    const logMsg = `🔔 Admin: Kullanıcı ${data[index].userId} (${data[index].amount} ${data[index].token}) için '${action}' işlemi yaptı.\nHedef: ${data[index].address}`;
-    await sendTelegramLog(logMsg);
+      data.push(newWithdraw);
+      writeWithdraws(data);
 
-    return res.status(200).json({ success: true, id, status: data[index].status });
+      const userLog = `📥 Yeni Withdraw Talebi\n👤 Kullanıcı: ${userId}\n💰 ${amount} ${token}\n🎯 Adres: ${address}`;
+      sendTelegramLog(userLog);
+
+      return res.status(200).json({ success: true, id: newWithdraw.id });
+    }
+
+    return res.status(400).json({ error: 'Eksik bilgi gönderildi.' });
   }
 
-  return res.status(405).json({ error: 'Yalnızca GET ve POST izinlidir.' });
+  return res.status(405).json({ error: 'Yalnızca GET ve POST destekleniyor.' });
 }

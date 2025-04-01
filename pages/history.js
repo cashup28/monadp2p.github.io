@@ -1,41 +1,67 @@
 // /pages/history.js
 import { useEffect, useState } from 'react';
-import Head from 'next/head';
+import { useUser } from '@/context/UserContext';
 
-export default function History() {
+export default function HistoryPage() {
+  const { userId } = useUser();
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    // Örnek veriler (gerçek sistemde backend'den alınacak)
-    setHistory([
-      { id: 'TX12345', type: 'Withdraw', token: 'MONAD', amount: 20, status: 'Tamamlandı', date: '2025-03-25' },
-      { id: 'TX12346', type: 'Deposit', token: 'TON', amount: 5.5, status: 'Tamamlandı', date: '2025-03-24' },
-      { id: 'ORD789', type: 'Order', token: 'TON → MONAD', amount: 1.2, status: 'Bekliyor', date: '2025-03-26' },
-      { id: 'ORD790', type: 'Order', token: 'MONAD → TON', amount: 15, status: 'Tamamlandı', date: '2025-03-23' },
-    ]);
-  }, []);
+    const fetchHistory = async () => {
+      if (!userId) return;
+      const res1 = await fetch('/api/get-orders');
+      const res2 = await fetch('/api/withdraw');
+
+      const orders = await res1.json();
+      const withdraws = await res2.json();
+
+      const filtered = [
+        ...orders.orders
+          .filter((o) => o.userId === userId)
+          .map((o) => ({
+            type: 'order',
+            coin: o.offerCoin,
+            amount: o.offerAmount,
+            status: o.status,
+            id: o.id,
+            time: o.timestamp,
+          })),
+        ...withdraws
+          .filter((w) => w.userId === userId)
+          .map((w) => ({
+            type: 'withdraw',
+            coin: w.token,
+            amount: w.amount,
+            status: w.status,
+            id: w.id,
+            time: w.createdAt,
+          })),
+      ];
+
+      setHistory(filtered.sort((a, b) => new Date(b.time) - new Date(a.time)));
+    };
+
+    fetchHistory();
+  }, [userId]);
 
   return (
-    <>
-      <Head>
-        <title>İşlem Geçmişi</title>
-        <link href="/tailwind.css" rel="stylesheet" />
-      </Head>
-      <main className="min-h-screen bg-black text-white p-4">
-        <h1 className="text-2xl font-bold mb-4">📜 İşlem Geçmişi</h1>
+    <div className="min-h-screen bg-black text-white p-4">
+      <h1 className="text-xl font-bold mb-4 text-purple-400">İşlem Geçmişi</h1>
 
-        <div className="space-y-3">
-          {history.map((item) => (
-            <div key={item.id} className="border border-gray-600 p-3 rounded">
-              <p><b>ID:</b> {item.id}</p>
-              <p><b>Tür:</b> {item.type}</p>
-              <p><b>Miktar:</b> {item.amount} {item.token}</p>
-              <p><b>Durum:</b> <span className={item.status === 'Tamamlandı' ? 'text-green-400' : 'text-yellow-400'}>{item.status}</span></p>
-              <p><b>Tarih:</b> {item.date}</p>
-            </div>
+      {history.length === 0 ? (
+        <p>Henüz işlem geçmişiniz yok.</p>
+      ) : (
+        <ul className="space-y-3">
+          {history.map((item, i) => (
+            <li key={i} className="border border-purple-700 rounded-lg p-3">
+              <p><strong>Tür:</strong> {item.type === 'order' ? 'Takas' : 'Withdraw'}</p>
+              <p><strong>Miktar:</strong> {item.amount} {item.coin}</p>
+              <p><strong>Durum:</strong> {item.status}</p>
+              <p className="text-sm text-gray-400">ID: {item.id}</p>
+            </li>
           ))}
-        </div>
-      </main>
-    </>
+        </ul>
+      )}
+    </div>
   );
 }
