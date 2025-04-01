@@ -1,19 +1,24 @@
-// /pages/process-order.js
 import { useRouter } from 'next/router';
-import { useContext, useEffect, useState } from 'react';
-import { UserContext } from '@/context/UserContext';
+import { useEffect, useState } from 'react';
+import { useUser } from '@/context/UserContext';
 
 export default function ProcessOrderPage() {
   const router = useRouter();
   const { id } = router.query;
-  const { user, updateUser } = useContext(UserContext);
+  const {
+    userId,
+    tonBalance,
+    monadBalance,
+    setTonBalance,
+    setMonadBalance
+  } = useUser();
+
   const [order, setOrder] = useState(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    // Normalde API'den order çekilmeli — örnek veri kullanıyoruz
     const exampleOrder = {
       id,
       offerCoin: 'TON',
@@ -26,9 +31,11 @@ export default function ProcessOrderPage() {
   }, [id]);
 
   const handleAccept = async () => {
-    if (!user || !order) return;
+    if (!userId || !order) return;
 
-    const available = order.receiveCoin === 'TON' ? user.profile.ton : user.profile.monad;
+    const available =
+      order.receiveCoin === 'TON' ? tonBalance : monadBalance;
+
     if (available < order.receiveAmount) {
       return setMessage(`Yeterli ${order.receiveCoin} bakiyeniz yok.`);
     }
@@ -38,14 +45,14 @@ export default function ProcessOrderPage() {
       const res = await fetch('/api/match-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id, takasYapanId: user.profile.id }),
+        body: JSON.stringify({ orderId: order.id, takasYapanId: userId }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
         setMessage(data.message || 'Takas başarılı!');
-        updateUser();
+        // updateUser() gibi bir fonksiyon tanımlamadığın için burada bir şey çağırmaya gerek yok
       } else {
         setMessage(data.error || 'Takas işlemi başarısız.');
       }
