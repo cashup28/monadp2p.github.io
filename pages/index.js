@@ -13,6 +13,21 @@ export default function Home() {
     tonBalance: '5.67'
   })
 
+  const exampleTrades = [
+    '@user42 10 MONAD → 2 TON takası yaptı',
+    '@user58 1 TON → 18 MONAD takası yaptı',
+    '@user99 5 TON → 20 MONAD takası yaptı',
+    '@user33 15 MONAD → 3 TON takası yaptı',
+    '@user12 0.5 TON → 7 MONAD takası yaptı',
+    '@user81 20 MONAD → 4 TON takası yaptı',
+    '@user17 3 TON → 12 MONAD takası yaptı',
+    '@user24 9 MONAD → 1.2 TON takası yaptı',
+    '@user90 2 TON → 6 MONAD takası yaptı',
+    '@user01 11 MONAD → 2.5 TON takası yaptı'
+  ]
+
+  const [currentIndex, setCurrentIndex] = useState(0)
+
   useEffect(() => {
     fetch('/api/socket')
     socket = io()
@@ -21,19 +36,24 @@ export default function Home() {
       setLastTrade(`@${data.user} ${data.from} → ${data.to} takası yaptı`)
     })
 
-    return () => socket.disconnect()
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % exampleTrades.length)
+    }, 6000)
+
+    return () => {
+      socket.disconnect()
+      clearInterval(interval)
+    }
   }, [])
 
   return (
     <div className="min-h-screen bg-black text-white font-sans px-4 pt-[16.6vh] pb-6 flex flex-col gap-5">
 
       {/* USER ID + İşlem bildirimi kutusu */}
-      <div className="bg-neutral-900 rounded-xl p-4 space-y-1">
+      <div className="bg-neutral-900 rounded-xl p-4 space-y-2">
         <div className="text-sm text-gray-400">USER ID</div>
         <div className="text-lg font-semibold">{user.userId}</div>
-        {lastTrade && (
-          <div className="text-sm text-gray-300 mt-2">{lastTrade}</div>
-        )}
+        <div className="text-sm text-gray-300 mt-1">{exampleTrades[currentIndex]}</div>
       </div>
 
       {/* 3'lü Bilgi Kartı */}
