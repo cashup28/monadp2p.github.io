@@ -25,8 +25,8 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans px-4 py-6 flex flex-col gap-5">
-      
+    <div className="min-h-screen bg-black text-white font-sans px-4 pt-[16.6vh] pb-6 flex flex-col gap-5">
+
       {/* USER ID + İşlem bildirimi kutusu */}
       <div className="bg-neutral-900 rounded-xl p-4 space-y-1">
         <div className="text-sm text-gray-400">USER ID</div>
