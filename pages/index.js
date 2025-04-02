@@ -1,9 +1,12 @@
 // pages/index.js
 import Link from 'next/link';
+import BackButton from "@/components/BackButton";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+      <BackButton />
+
+    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white p-6" className="min-h-screen bg-black text-white p-6">
       <h1 className="text-3xl font-bold text-purple-500 mb-4">Monad P2P Mini App</h1>
       <p className="mb-6">Hoş geldiniz! Aşağıdaki bağlantılarla uygulamayı kullanmaya başlayabilirsiniz:</p>
       <ul className="space-y-3">
