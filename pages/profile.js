@@ -14,7 +14,7 @@ const isValidTonAddress = (addr) => {
 
 useEffect(() => {
   if (typeof window !== 'undefined' && wallet?.account?.address) {
-    console.log('TON Wallet:', wallet.account.address);
+    console.log('Connected wallet:', wallet.account.address);
   }
 }, [wallet]);
 
