@@ -1,5 +1,9 @@
 // pages/api/check-monad-deposits.js
 
+export const config = {
+  schedule: '*/1 * * * *'
+};
+
 import axios from 'axios';
 
 let walletDB = {
