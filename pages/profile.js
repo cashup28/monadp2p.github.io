@@ -1,7 +1,7 @@
 // pages/profile.js
 
 import { useEffect, useState } from 'react';
-import { useTonConnectUI, useTonWallet } from '@tonconnect/ui-react';
+import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import Link from 'next/link';
 import BackButton from '@/components/BackButton';
 
@@ -83,6 +83,7 @@ export default function Profile() {
 
   const handleMonadWalletSave = async () => {
     if (!newMonadAddress || monadWallets.length >= 3) return;
+    if (!newMonadAddress.startsWith('0x') || newMonadAddress.length < 20) return alert('Geçersiz MONAD adresi');
     const res = await fetch('/api/set-monad-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -115,7 +116,11 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-black text-white p-6 pt-[16.6vh] flex flex-col gap-6">
-      <BackButton />
+      <div className="flex justify-between items-center">
+        <BackButton />
+        <TonConnectButton />
+      </div>
+
       <h1 className="text-2xl font-bold">👤 Profil</h1>
 
       <div className="flex justify-between bg-white/10 p-4 rounded-xl">
@@ -132,7 +137,7 @@ export default function Profile() {
       <div className="bg-white/10 p-4 rounded-xl">
         <h2 className="text-lg font-semibold mb-3">TON Yatırma</h2>
         <p className="text-sm mb-2">Sadece kayıtlı TON cüzdanlarınızdan aşağıdaki adrese gönderim yapınız.</p>
-        <div className="text-xs font-mono bg-black/40 p-2 rounded mb-2">{TON_POOL_WALLET}</div>
+        <div className="text-xs font-mono bg-black/40 p-2 rounded mb-2 truncate">{TON_POOL_WALLET}</div>
         <button onClick={() => handleCopy(TON_POOL_WALLET)} className="bg-purple-700 px-4 py-1 text-sm rounded">
           Adresi Kopyala
         </button>
@@ -141,7 +146,7 @@ export default function Profile() {
       <div className="bg-white/10 p-4 rounded-xl">
         <h2 className="text-lg font-semibold mb-3">MONAD Yatırma</h2>
         <p className="text-sm mb-2">Sadece kayıtlı MONAD cüzdanlarınızdan aşağıdaki adrese gönderim yapınız.</p>
-        <div className="text-xs font-mono bg-black/40 p-2 rounded mb-2">{MONAD_POOL_WALLET}</div>
+        <div className="text-xs font-mono bg-black/40 p-2 rounded mb-2 truncate">{MONAD_POOL_WALLET}</div>
         <button onClick={() => handleCopy(MONAD_POOL_WALLET)} className="bg-purple-700 px-4 py-1 text-sm rounded">
           Adresi Kopyala
         </button>
@@ -150,7 +155,9 @@ export default function Profile() {
       <div className="bg-white/10 p-4 rounded-xl">
         <h2 className="text-lg font-semibold mb-2">TON Cüzdanlar</h2>
         {tonWallets.map((addr, idx) => (
-          <div key={idx} className="text-sm font-mono">{addr}</div>
+          <div key={idx} className="text-sm font-mono cursor-pointer hover:text-purple-300" onClick={() => alert('Bu cüzdan ile işlem yapılabilir: ' + addr)}>
+            {addr}
+          </div>
         ))}
         {isConnected && !isTonWalletKnown && !isTonWalletLimitReached && (
           <>
@@ -199,7 +206,6 @@ export default function Profile() {
           💸 Withdraw Sayfasına Git
         </Link>
       </div>
-
     </div>
   );
 }

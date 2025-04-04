@@ -1,56 +1,41 @@
 // pages/index.js
-import { useEffect, useState, useRef } from 'react'
-import io from 'socket.io-client'
-import Image from 'next/image'
-import Link from 'next/link'
+
+import { useEffect, useState, useRef } from 'react';
+import io from 'socket.io-client';
+import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Home() {
-  const socketRef = useRef(null)
-  const [lastTrade, setLastTrade] = useState(null)
-  const [userId, setUserId] = useState('')
-  const [monad, setMonad] = useState(0)
-  const [ton, setTon] = useState(0)
+  const socketRef = useRef(null);
+  const [lastTrade, setLastTrade] = useState(null);
+  const [userId, setUserId] = useState('');
+  const [monad, setMonad] = useState(0);
+  const [ton, setTon] = useState(0);
 
   useEffect(() => {
-    let storedId = localStorage.getItem('userId')
-    if (!storedId) {
-      storedId = 'user' + Math.floor(100000 + Math.random() * 900000)
-      localStorage.setItem('userId', storedId)
-    }
-    setUserId(storedId)
-  }, [])
-
-  useEffect(() => {
-    if (!userId) return
-    fetch('/api/get-user-balances', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setMonad(data.monad)
-          setTon(data.ton)
-        }
-      })
-  }, [userId])
+    const storedId = localStorage.getItem('userId');
+    const storedMonad = localStorage.getItem('monadBalance');
+    const storedTon = localStorage.getItem('tonBalance');
+    if (storedId) setUserId(storedId);
+    if (storedMonad) setMonad(parseFloat(storedMonad));
+    if (storedTon) setTon(parseFloat(storedTon));
+  }, []);
 
   useEffect(() => {
     const initSocket = async () => {
-      await fetch('/api/socket')
-      if (socketRef.current) socketRef.current.disconnect()
-      socketRef.current = io({ path: '/api/socket' })
+      await fetch('/api/socket');
+      if (socketRef.current) socketRef.current.disconnect();
+      socketRef.current = io({ path: '/api/socket' });
       socketRef.current.on('newTrade', (data) => {
-        setLastTrade(`@${data.user} ${data.amount} ${data.from} → ${data.to} takası yaptı`)
-      })
-    }
-    initSocket()
-    return () => socketRef.current?.disconnect()
-  }, [])
+        setLastTrade(`@${data.user} ${data.amount} ${data.from} → ${data.to} takası yaptı`);
+      });
+    };
+    initSocket();
+    return () => socketRef.current?.disconnect();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 flex flex-col items-center">
+    <div className="min-h-screen bg-black text-white p-6 pt-[20vh] flex flex-col items-center">
       <div className="w-full text-center mb-4 animate-pulse text-sm text-purple-400">
         {lastTrade || 'Canlı işlemler bekleniyor...'}
       </div>
@@ -87,7 +72,7 @@ export default function Home() {
         <NavButton href="/support" label="Destek" />
       </div>
     </div>
-  )
+  );
 }
 
 function NavButton({ href, label }) {
@@ -95,5 +80,5 @@ function NavButton({ href, label }) {
     <Link href={href} className="bg-purple-600/60 hover:bg-purple-600 rounded-2xl py-3 text-center shadow-md">
       {label}
     </Link>
-  )
+  );
 }
