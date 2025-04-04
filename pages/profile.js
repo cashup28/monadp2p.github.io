@@ -12,6 +12,8 @@ const isValidTonAddress = (addr) => {
   return typeof addr === 'string' && /^[a-zA-Z0-9_-]{48,66}$/.test(addr);
 };
 
+console.log('wallet.account.address →', wallet?.account?.address);
+
 export default function Profile() {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
