@@ -8,6 +8,10 @@ import Link from 'next/link';
 const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_EXAMPLE_ADDRESS';
 const MONAD_POOL_WALLET = process.env.NEXT_PUBLIC_MONAD_POOL_WALLET || '0xPOOLMONAD1234567890abcdef';
 
+const isValidTonAddress = (addr) => {
+  return typeof addr === 'string' && /^[a-zA-Z0-9_-]{48,66}$/.test(addr);
+};
+
 export default function Profile() {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
@@ -74,7 +78,7 @@ export default function Profile() {
   const saveTonWallet = async (address) => {
     if (!address || tonWallets.includes(address) || tonWallets.length >= 3) return;
 
-    if (typeof address !== 'string' || address.length < 48 || !address.startsWith('E')) {
+    if (!isValidTonAddress(address)) {
       alert('Geçersiz TON mainnet adresi.');
       return;
     }
