@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
-import Link from 'next/link';
-import BackButton from '@/components/BackButton';
+import BackButton from "@/components/BackButton";  // BackButton'ı import et
+import Link from 'next/link';  // Link'i import et
 
 const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_EXAMPLE_ADDRESS';
 const MONAD_POOL_WALLET = process.env.NEXT_PUBLIC_MONAD_POOL_WALLET || '0xPOOLMONAD1234567890abcdef';
@@ -115,9 +115,9 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 pt-[16.6vh] flex flex-col gap-6">
+    <div className="min-h-screen bg-black text-white p-6 pt-[20vh] flex flex-col gap-6">
       <div className="flex justify-between items-center">
-        <BackButton />
+        <BackButton />  {/* Geri dön butonunu buraya ekliyoruz */}
         <TonConnectButton />
       </div>
 
@@ -154,7 +154,7 @@ export default function Profile() {
 
       <div className="bg-white/10 p-4 rounded-xl">
         <h2 className="text-lg font-semibold mb-2">TON Cüzdanlar</h2>
-        {tonWallets.map((addr, idx) => (
+        {tonWallets && tonWallets.map((addr, idx) => (
           <div key={idx} className="text-sm font-mono cursor-pointer hover:text-purple-300" onClick={() => alert('Bu cüzdan ile işlem yapılabilir: ' + addr)}>
             {addr}
           </div>
@@ -176,7 +176,7 @@ export default function Profile() {
 
       <div className="bg-white/10 p-4 rounded-xl">
         <h2 className="text-lg font-semibold mb-2">MONAD Cüzdanlar</h2>
-        {monadWallets.map((addr, idx) => (
+        {monadWallets && monadWallets.map((addr, idx) => (
           <div key={idx} className="flex justify-between items-center text-sm font-mono mb-1">
             <span>{addr}</span>
             <button onClick={() => handleMonadWalletDelete(addr)} className="text-red-400 text-xs">Sil</button>
@@ -199,10 +199,7 @@ export default function Profile() {
       </div>
 
       <div className="flex justify-center">
-        <Link
-          href="/withdraw"
-          className="bg-purple-700 mt-6 px-6 py-2 rounded-xl text-white text-sm hover:bg-purple-600"
-        >
+        <Link href="/withdraw" className="bg-purple-700 mt-6 px-6 py-2 rounded-xl text-white text-sm hover:bg-purple-600">
           💸 Withdraw Sayfasına Git
         </Link>
       </div>

@@ -1,22 +1,17 @@
-import { useRouter } from 'next/router';
+// components/BackButton.js
 
-export default function BackButton({ fallback = '/' }) {
+import { useRouter } from "next/router";
+
+export default function BackButton() {
   const router = useRouter();
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      router.push(fallback);
-    }
+  
+  const goBack = () => {
+    router.back(); // Kullanıcıyı önceki sayfaya yönlendirir
   };
 
   return (
-    <button
-      onClick={handleBack}
-      className="mb-4 inline-flex items-center text-sm text-blue-400 hover:text-blue-200 transition"
-    >
-      ← Geri Dön
+    <button onClick={goBack} className="bg-purple-700 px-4 py-2 rounded-lg text-white">
+      Geri
     </button>
   );
 }
