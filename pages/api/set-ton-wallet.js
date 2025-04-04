@@ -1,27 +1,40 @@
 // pages/api/set-ton-wallet.js
 
-let userWallets = {}; // Bu örnek dosya bazlı saklama için. Prod ortamda veritabanı kullanılmalı.
+let tonWalletsDB = {}; // { userId: [addr1, addr2, ...] }
 
 export default function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Yalnızca POST isteği kabul edilir' });
   }
 
-  const { userId, tonWallet } = req.body;
+  const { userId, address } = req.body;
 
-  if (!userId || !tonWallet) {
-    return res.status(400).json({ success: false, error: 'Eksik veri: userId veya tonWallet yok' });
+  if (!userId || !address) {
+    return res.status(400).json({ success: false, error: 'Eksik veri: userId veya address' });
   }
 
-  // Aynı adres başka kullanıcıya atanmış mı kontrolü (basit versiyon)
-  for (const [id, addr] of Object.entries(userWallets)) {
-    if (addr === tonWallet && id !== userId) {
+  // Başka kullanıcıya ait mi?
+  for (const [id, list] of Object.entries(tonWalletsDB)) {
+    if (list.includes(address) && id !== userId) {
       return res.status(409).json({ success: false, error: 'Bu TON adresi başka kullanıcıya ait' });
     }
   }
 
-  // Kayıt işlemi
-  userWallets[userId] = tonWallet;
+  if (!tonWalletsDB[userId]) {
+    tonWalletsDB[userId] = [];
+  }
 
-  return res.status(200).json({ success: true, tonWallet });
+  // Eğer zaten varsa ekleme
+  if (tonWalletsDB[userId].includes(address)) {
+    return res.status(200).json({ success: true, tonWallets: tonWalletsDB[userId] });
+  }
+
+  // Maksimum 3 cüzdan sınırı
+  if (tonWalletsDB[userId].length >= 3) {
+    return res.status(400).json({ success: false, error: 'Maksimum 3 TON cüzdan kaydedilebilir' });
+  }
+
+  tonWalletsDB[userId].push(address);
+
+  return res.status(200).json({ success: true, tonWallets: tonWalletsDB[userId] });
 }
