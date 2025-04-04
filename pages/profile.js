@@ -74,7 +74,7 @@ export default function Profile() {
   const saveTonWallet = async (address) => {
     if (!address || tonWallets.includes(address) || tonWallets.length >= 3) return;
 
-    if (!address.startsWith('EQ') || address.length < 48) {
+    if (typeof address !== 'string' || address.length < 48 || !address.startsWith('E')) {
       alert('Geçersiz TON mainnet adresi.');
       return;
     }
@@ -93,7 +93,7 @@ export default function Profile() {
   };
 
   const handleMonadWalletSave = async () => {
-    if (!newMonadAddress || monadWallets.length >= 3) return;
+    if (!newMonadAddress || (monadWallets?.length ?? 0) >= 3) return;
     if (!newMonadAddress.startsWith('0x') || newMonadAddress.length !== 42) {
       alert('Geçersiz MONAD testnet adresi.');
       return;
@@ -157,15 +157,34 @@ export default function Profile() {
       </div>
 
       <div className="bg-white/10 p-4 rounded-xl">
-        <h2 className="text-lg font-semibold mb-3">MONAD Yatırma</h2>
-        <p className="text-sm mb-2">⚠️ Sadece MONAD testnet cüzdanlarınızdan aşağıdaki adrese gönderim yapınız.</p>
-        <div className="text-xs font-mono bg-black/40 p-2 rounded mb-2 truncate">{MONAD_POOL_WALLET}</div>
-        <button onClick={() => handleCopy(MONAD_POOL_WALLET)} className="bg-purple-700 px-4 py-1 text-sm rounded">
-          Adresi Kopyala
-        </button>
+        <h2 className="text-lg font-semibold mb-3">MONAD Cüzdan Ekle</h2>
+        {(monadWallets?.length ?? 0) < 3 && (
+          <div className="flex gap-2 items-center">
+            <input
+              type="text"
+              value={newMonadAddress}
+              onChange={(e) => setNewMonadAddress(e.target.value)}
+              placeholder="0x..."
+              className="flex-1 px-2 py-1 text-black rounded"
+            />
+            <button onClick={handleMonadWalletSave} className="bg-green-600 px-3 py-1 rounded">
+              Kaydet
+            </button>
+          </div>
+        )}
+        {(monadWallets?.length ?? 0) > 0 && (
+          <ul className="mt-2 text-xs">
+            {monadWallets.map((addr, i) => (
+              <li key={i} className="flex justify-between items-center">
+                <span>{addr}</span>
+                <button onClick={() => handleMonadWalletDelete(addr)} className="text-red-400 text-sm">
+                  Sil
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-
-      {/* Diğer UI bileşenleri aynı mantıkla devam edecek */}
     </div>
   );
 }
