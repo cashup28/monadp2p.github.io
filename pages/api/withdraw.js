@@ -1,76 +1,65 @@
-import fs from 'fs';
-import path from 'path';
-import { sendTelegramLog } from '../../utils/telegram'; // ✅ DÜZELTİLDİ
+// pages/api/withdraw.js
 
-const filePath = path.join(process.cwd(), 'data', 'withdraws.json');
+import { TonClient, WalletContractV4 } from 'ton';
+import { mnemonicToWalletKey } from 'ton-crypto';
+import { ethers } from 'ethers';
 
-function readWithdraws() {
+let balances = {
+  // userId: { ton: Number, monad: Number }
+};
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Sadece POST desteklenir' });
+  }
+
+  const { userId, coin, amount, targetAddress } = req.body;
+  const value = parseFloat(amount);
+
+  if (!userId || !coin || !value || !targetAddress) {
+    return res.status(400).json({ success: false, error: 'Eksik bilgi' });
+  }
+
+  if (!balances[userId] || balances[userId][coin] < value) {
+    return res.status(400).json({ success: false, error: 'Yetersiz bakiye' });
+  }
+
   try {
-    const data = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(data);
+    if (coin === 'ton') {
+      const client = new TonClient({ endpoint: 'https://toncenter.com/api/v2/jsonRPC' });
+      const key = await mnemonicToWalletKey(process.env.TON_MNEMONIC.split(' '));
+      const wallet = WalletContractV4.create({ workchain: 0, publicKey: key.publicKey });
+      const contract = client.open(wallet);
+
+      const seqno = await contract.getSeqno();
+      await contract.sendTransfer({
+        secretKey: key.secretKey,
+        seqno,
+        messages: [
+          {
+            to: targetAddress,
+            value: value.toFixed(9).toString(),
+            bounce: false,
+          },
+        ],
+      });
+    } else if (coin === 'monad') {
+      const provider = new ethers.JsonRpcProvider(process.env.MONAD_RPC_URL);
+      const wallet = new ethers.Wallet(process.env.MONAD_PRIVATE_KEY, provider);
+
+      const tx = await wallet.sendTransaction({
+        to: targetAddress,
+        value: ethers.parseEther(value.toString())
+      });
+      await tx.wait();
+    } else {
+      return res.status(400).json({ success: false, error: 'Geçersiz coin türü' });
+    }
+
+    balances[userId][coin] -= value;
+    return res.status(200).json({ success: true });
   } catch (err) {
-    return [];
+    console.error('Withdraw error:', err);
+    return res.status(500).json({ success: false, error: 'Transfer başarısız' });
   }
-}
-
-function writeWithdraws(data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-}
-
-export default function handler(req, res) {
-  if (req.method === 'GET') {
-    const data = readWithdraws();
-    return res.status(200).json(data);
-  }
-
-  if (req.method === 'POST') {
-    const { id, action, userId, token, amount, address } = req.body;
-    const data = readWithdraws();
-
-    // 🔐 Admin işlemleri (onay/reddet)
-    if (id && action) {
-      const index = data.findIndex(w => w.id === id);
-      if (index === -1) return res.status(404).json({ error: 'İşlem bulunamadı.' });
-
-      if (action === 'approve') {
-        data[index].status = 'approved';
-      } else if (action === 'reject') {
-        data[index].status = 'rejected';
-      } else {
-        return res.status(400).json({ error: 'Geçersiz işlem türü.' });
-      }
-
-      writeWithdraws(data);
-
-      const logMsg = `🔔 Admin: Kullanıcı ${data[index].userId} (${data[index].amount} ${data[index].token}) için '${action}' işlemi yaptı.\nHedef: ${data[index].address}`;
-      sendTelegramLog(logMsg);
-
-      return res.status(200).json({ success: true, id, status: data[index].status });
-    }
-
-    // ✅ Kullanıcı withdraw talebi oluşturuyor
-    if (userId && token && amount && address) {
-      const newWithdraw = {
-        id: Date.now().toString(),
-        userId,
-        token,
-        amount,
-        address,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
-
-      data.push(newWithdraw);
-      writeWithdraws(data);
-
-      const userLog = `📥 Yeni Withdraw Talebi\n👤 Kullanıcı: ${userId}\n💰 ${amount} ${token}\n🎯 Adres: ${address}`;
-      sendTelegramLog(userLog);
-
-      return res.status(200).json({ success: true, id: newWithdraw.id });
-    }
-
-    return res.status(400).json({ error: 'Eksik bilgi gönderildi.' });
-  }
-
-  return res.status(405).json({ error: 'Yalnızca GET ve POST destekleniyor.' });
 }

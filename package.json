@@ -1,26 +1,21 @@
 {
   "name": "monadp2p",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
-    "@tonconnect/sdk": "^3.1.0",
     "@tonconnect/ui-react": "^2.1.0",
-    "ethers": "^6.13.5",
-    "lucide-react": "^0.487.0",
-    "next": "13.4.19",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1",
-    "uuid": "^11.1.0"
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.12",
-    "postcss": "^8.4.16",
-    "tailwindcss": "^3.3.3"
+    "autoprefixer": "^10.4.15",
+    "next": "^14.2.3",
+    "postcss": "^8.4.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
+    "tailwindcss": "^3.4.1"
   }
 }
