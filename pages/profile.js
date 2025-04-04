@@ -12,7 +12,12 @@ const isValidTonAddress = (addr) => {
   return typeof addr === 'string' && /^[a-zA-Z0-9_-]{48,66}$/.test(addr);
 };
 
-console.log('wallet.account.address →', wallet?.account?.address);
+useEffect(() => {
+  if (typeof window !== 'undefined' && wallet?.account?.address) {
+    console.log('TON Wallet:', wallet.account.address);
+  }
+}, [wallet]);
+
 
 export default function Profile() {
   const [tonConnectUI] = useTonConnectUI();
