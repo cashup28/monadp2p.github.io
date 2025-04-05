@@ -1,4 +1,4 @@
-// Genişletilmiş ve Tam Profil Sayfası (Full UI + İşlevsellik)
+// Dosya başı
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import { useRouter } from 'next/router';
@@ -21,8 +21,7 @@ const getTonBalance = async (address) => {
   const apiKey = process.env.NEXT_PUBLIC_TONCENTER_API_KEY;
   const res = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}&api_key=${apiKey}`);
   const data = await res.json();
-  if (!data.result || isNaN(data.result)) return 0;
-  return parseFloat(data.result) / 1e9;
+  return data.result ? parseFloat(data.result) / 1e9 : 0;
 };
 
 const getMonadBalance = async (address) => {
@@ -33,7 +32,7 @@ const getMonadBalance = async (address) => {
 
 const sendWithdrawRequest = async (type, amount, address) => {
   try {
-    const res = await fetch(`/api/withdraw`, {
+    const res = await fetch('/api/withdraw', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type, amount, address }),
@@ -65,28 +64,6 @@ export default function Profile() {
   const [withdrawStatus, setWithdrawStatus] = useState(null);
   const [activeTab, setActiveTab] = useState('deposit');
 
-  const copyToClipboard = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedText(text);
-      setTimeout(() => setCopiedText(''), 1500);
-    } catch (err) {
-      console.error('Copy failed', err);
-    }
-  };
-
-  const handleTonDelete = (address) => {
-    const updated = tonWallets.filter((addr) => addr !== address);
-    setTonWallets(updated);
-    localStorage.setItem('tonWallets', JSON.stringify(updated));
-  };
-
-  const handleMonadDelete = (address) => {
-    const updated = monadWallets.filter((a) => a !== address);
-    setMonadWallets(updated);
-    localStorage.setItem('monadWallets', JSON.stringify(updated));
-  };
-
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId') || `user${Math.floor(100000 + Math.random() * 900000)}`;
     localStorage.setItem('userId', storedUserId);
@@ -111,15 +88,37 @@ export default function Profile() {
         localStorage.setItem('tonWallets', JSON.stringify(updated));
       }
 
-      getTonBalance(formattedAddr).then(setTon).catch(console.error);
+      getTonBalance(formattedAddr).then(setTon);
     }
   }, [wallet]);
 
   useEffect(() => {
     if (monadWallets.length > 0) {
-      getMonadBalance(monadWallets[monadWallets.length - 1]).then(setMonad).catch(console.error);
+      getMonadBalance(monadWallets[monadWallets.length - 1]).then(setMonad);
     }
   }, [monadWallets]);
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(text);
+      setTimeout(() => setCopiedText(''), 1500);
+    } catch (err) {
+      console.error('Copy failed', err);
+    }
+  };
+
+  const handleTonDelete = (address) => {
+    const updated = tonWallets.filter((addr) => addr !== address);
+    setTonWallets(updated);
+    localStorage.setItem('tonWallets', JSON.stringify(updated));
+  };
+
+  const handleMonadDelete = (address) => {
+    const updated = monadWallets.filter((a) => a !== address);
+    setMonadWallets(updated);
+    localStorage.setItem('monadWallets', JSON.stringify(updated));
+  };
 
   const handleMonadSave = () => {
     if (!newMonadAddress || monadWallets.includes(newMonadAddress)) return;
@@ -140,9 +139,9 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 pt-[16.6vh] relative">
+    <div className="min-h-screen bg-black text-white p-4 pt-[16.6vh]">
       <div className="flex items-center justify-between">
-        <button onClick={() => router.back()} className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-full shadow-lg">← Geri</button>
+        <button onClick={() => router.back()} className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-full">← Geri</button>
         <h2 className="text-2xl font-bold ml-4">👤 Profil Sayfan</h2>
       </div>
 
@@ -153,13 +152,14 @@ export default function Profile() {
             <TonConnectButton />
             {isConnected && (
               <div className="flex items-center justify-end w-full sm:w-auto gap-2">
-                <span className="text-xs">{shortAddress} ({ton?.toFixed(2) ?? '...'} TON)</span>
+                <span className="text-xs">{shortAddress} ({ton.toFixed(2)} TON)</span>
                 <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs">Bağlantıyı Kes</button>
               </div>
             )}
           </div>
         </div>
 
+        {/* TON Cüzdanlar */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
           <ul className="space-y-1 text-xs">
@@ -176,6 +176,7 @@ export default function Profile() {
           </ul>
         </div>
 
+        {/* MONAD Cüzdanlar */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <h3 className="font-semibold mb-2">MONAD Cüzdanlar</h3>
           <input value={newMonadAddress} onChange={(e) => setNewMonadAddress(e.target.value)} className="border rounded p-2 w-full mb-2 text-black" placeholder="Yeni MONAD adresi" />
@@ -195,6 +196,7 @@ export default function Profile() {
           <p className="mt-2 text-sm">Bakiyen: {monad.toFixed(3)} MONAD</p>
         </div>
 
+        {/* Sekmeler */}
         <div className="flex justify-center gap-4">
           <button onClick={() => setActiveTab('deposit')} className={`px-4 py-1 rounded-full ${activeTab === 'deposit' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Deposit</button>
           <button onClick={() => setActiveTab('withdraw')} className={`px-4 py-1 rounded-full ${activeTab === 'withdraw' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Withdraw</button>
@@ -227,7 +229,7 @@ export default function Profile() {
             <input type="text" placeholder="Hedef cüzdan adresi" value={withdrawAddress} onChange={(e) => setWithdrawAddress(e.target.value)} className="w-full p-2 rounded text-black" />
             <button onClick={handleWithdraw} className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded w-full">Gönder</button>
             {withdrawStatus && (
-              <p className={`text-sm ${withdrawStatus.success ? 'text-green-400' : 'text-red-400'}`}>{withdrawStatus.message || (withdrawStatus.success ? 'Başarılı!' : 'Hata!')}</p>
+              <p className={`text-sm ${withdrawStatus.success ? 'text-green-400' : 'text-red-400'}`}>{withdrawStatus.message || (withdrawStatus.success ? 'Başarılı!' : 'Hata!' )}</p>
             )}
           </div>
         )}
