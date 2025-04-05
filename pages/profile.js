@@ -1,4 +1,4 @@
-// GÜNCELLENMİŞ TAM PROFILE.JS DOSYASI (Copy/Sil simgeli + kısaltılmış adresler)
+
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import { useRouter } from 'next/router';
@@ -17,8 +17,33 @@ const formatTonAddress = (rawAddress) => {
   }
 };
 
-const shortenAddress = (addr) => {
-  return addr?.slice(0, 4) + '...' + addr?.slice(-4);
+const shortenAddress = (addr) => addr?.slice(0, 4) + '...' + addr?.slice(-4);
+
+const getTonBalance = async (address) => {
+  const apiKey = process.env.NEXT_PUBLIC_TONCENTER_API_KEY;
+  const res = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}&api_key=${apiKey}`);
+  const data = await res.json();
+  return data.result ? parseFloat(data.result) / 1e9 : 0;
+};
+
+const getMonadBalance = async (address) => {
+  const res = await fetch(`https://testnet.monad.tools/account/${address}`);
+  const data = await res.json();
+  return parseFloat(data.balance) / 1e18;
+};
+
+const sendWithdrawRequest = async (type, amount, address) => {
+  try {
+    const res = await fetch('/api/withdraw', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, amount, address })
+    });
+    return await res.json();
+  } catch (err) {
+    console.error('Withdraw error:', err);
+    return { success: false, message: 'İşlem başarısız' };
+  }
 };
 
 export default function Profile() {
