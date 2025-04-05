@@ -6,21 +6,18 @@ import { Address } from '@ton/core';
 const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_EXAMPLE_ADDRESS';
 const MONAD_POOL_WALLET = process.env.NEXT_PUBLIC_MONAD_POOL_WALLET || '0xPOOLMONAD1234567890abcdef';
 
-// Format TON address to ensure it's always in the correct format (starts with UQ)
 const formatTonAddress = (rawAddress) => {
   try {
     const address = Address.parseRaw(rawAddress);
-    return address.toString({ urlSafe: true, bounceable: true }); // Ensures 'UQ' format
+    return address.toString({ urlSafe: true, bounceable: true });
   } catch (e) {
-    console.error('TON address format error:', e);
+    console.error('TON adres format hatası:', e);
     return rawAddress;
   }
 };
 
-// Shorten address for display (only show first and last 4 characters)
 const shortenAddress = (addr) => addr?.slice(0, 4) + '...' + addr?.slice(-4);
 
-// Fetch the TON balance using TonCenter API
 const getTonBalance = async (address) => {
   const apiKey = process.env.NEXT_PUBLIC_TONCENTER_API_KEY;
   const res = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}&api_key=${apiKey}`);
@@ -28,25 +25,23 @@ const getTonBalance = async (address) => {
   return data.result ? parseFloat(data.result) / 1e9 : 0;
 };
 
-// Fetch the MONAD balance using the Monad testnet API
 const getMonadBalance = async (address) => {
   const res = await fetch(`https://testnet.monad.tools/account/${address}`);
   const data = await res.json();
   return parseFloat(data.balance) / 1e18;
 };
 
-// Send a withdrawal request to the backend
 const sendWithdrawRequest = async (type, amount, address) => {
   try {
     const res = await fetch('/api/withdraw', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, amount, address }),
+      body: JSON.stringify({ type, amount, address })
     });
     return await res.json();
   } catch (err) {
     console.error('Withdraw error:', err);
-    return { success: false, message: 'Transaction failed' };
+    return { success: false, message: 'İşlem başarısız' };
   }
 };
 
@@ -70,7 +65,6 @@ export default function Profile() {
   const [withdrawStatus, setWithdrawStatus] = useState(null);
   const [activeTab, setActiveTab] = useState('deposit');
 
-  // Save user ID and wallet addresses in localStorage
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId') || `user${Math.floor(100000 + Math.random() * 900000)}`;
     localStorage.setItem('userId', storedUserId);
@@ -82,7 +76,6 @@ export default function Profile() {
     setMonadWallets(storedMonad);
   }, []);
 
-  // Connect the wallet and update balances
   useEffect(() => {
     if (wallet?.account?.address) {
       const rawAddr = wallet.account.address;
@@ -99,14 +92,12 @@ export default function Profile() {
     }
   }, [wallet]);
 
-  // Fetch MONAD balance when MONAD wallet is updated
   useEffect(() => {
     if (monadWallets.length > 0) {
       getMonadBalance(monadWallets[monadWallets.length - 1]).then(setMonad);
     }
   }, [monadWallets]);
 
-  // Copy the address to clipboard
   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -117,21 +108,18 @@ export default function Profile() {
     }
   };
 
-  // Handle deleting TON wallet
   const handleTonDelete = (address) => {
     const updated = tonWallets.filter((addr) => addr !== address);
     setTonWallets(updated);
     localStorage.setItem('tonWallets', JSON.stringify(updated));
   };
 
-  // Handle deleting MONAD wallet
   const handleMonadDelete = (address) => {
     const updated = monadWallets.filter((a) => a !== address);
     setMonadWallets(updated);
     localStorage.setItem('monadWallets', JSON.stringify(updated));
   };
 
-  // Handle saving new MONAD address
   const handleMonadSave = () => {
     if (!newMonadAddress || monadWallets.includes(newMonadAddress)) return;
     const updated = [...monadWallets, newMonadAddress].slice(-3);
@@ -140,7 +128,6 @@ export default function Profile() {
     setNewMonadAddress('');
   };
 
-  // Handle withdraw requests
   const handleWithdraw = async () => {
     if (!withdrawAmount || !withdrawAddress) return;
     const res = await sendWithdrawRequest(withdrawType, withdrawAmount, withdrawAddress);
