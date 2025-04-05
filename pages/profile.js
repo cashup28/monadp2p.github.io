@@ -83,7 +83,7 @@ export default function Profile() {
       setIsConnected(true);
       setShortAddress(shortenAddress(formatTonAddress(rawAddr)));
 
-      if (!tonWallets.includes(rawAddr)) {
+      if (!tonWallets.includes(formatTonAddress(rawAddr))) {
         const updated = [...tonWallets, rawAddr].slice(-3);
         setTonWallets(updated);
         localStorage.setItem('tonWallets', JSON.stringify(updated));
@@ -141,8 +141,11 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pt-[16.6vh]">
-      <div className="bg-zinc-900 rounded-xl p-4 text-right">
-        <p><strong>User ID:</strong> {userId}</p>
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={() => router.back()} className="bg-zinc-800 text-white rounded-full px-4 py-1">← Geri</button>
+        <h1 className="text-xl font-bold text-center w-full -ml-8">👤 Profil Sayfan</h1>
+      </div>
+      {userId}</p>
         <div className="mt-2 flex justify-end">
           <TonConnectButton />
         </div>
@@ -199,12 +202,12 @@ export default function Profile() {
           <h3 className="text-lg font-semibold">➕ Deposit</h3>
           <div className="flex justify-between items-center">
             <p>TON Havuz:</p>
-            <button onClick={() => copyToClipboard(TON_POOL_WALLET)} className="text-blue-400 text-xs">📋 Copy</button>
+            <button onClick={() => copyToClipboard(TON_POOL_WALLET)} className="text-blue-400 text-xs">Copy</button>
           </div>
           <p className="text-xs break-all">{TON_POOL_WALLET}</p>
           <div className="flex justify-between items-center">
             <p>MONAD Havuz:</p>
-            <button onClick={() => copyToClipboard(MONAD_POOL_WALLET)} className="text-blue-400 text-xs">📋 Copy</button>
+            <button onClick={() => copyToClipboard(MONAD_POOL_WALLET)} className="text-blue-400 text-xs">Copy</button>
           </div>
           <p className="text-xs break-all">{MONAD_POOL_WALLET}</p>
         </div>
