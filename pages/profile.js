@@ -84,7 +84,7 @@ export default function Profile() {
       setShortAddress(shortenAddress(formatTonAddress(rawAddr)));
 
       if (!tonWallets.includes(formatTonAddress(rawAddr))) {
-        const updated = [...tonWallets, rawAddr].slice(-3);
+      const updated = [...tonWallets, formatTonAddress(rawAddr)].slice(-3);
         setTonWallets(updated);
         localStorage.setItem('tonWallets', JSON.stringify(updated));
       }
