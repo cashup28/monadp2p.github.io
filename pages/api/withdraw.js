@@ -1,65 +1,66 @@
-// pages/api/withdraw.js
+// pages/api/withdraw.js (Final - gerçek transfer, canlı deploya hazır)
 
-import { TonClient, WalletContractV4 } from 'ton';
-import { mnemonicToWalletKey } from 'ton-crypto';
-import { ethers } from 'ethers';
-
-let balances = {
-  // userId: { ton: Number, monad: Number }
-};
+const axios = require('axios');
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Sadece POST desteklenir' });
+    return res.status(405).json({ success: false, message: 'Yalnızca POST isteği destekleniyor' });
   }
 
-  const { userId, coin, amount, targetAddress } = req.body;
-  const value = parseFloat(amount);
-
-  if (!userId || !coin || !value || !targetAddress) {
-    return res.status(400).json({ success: false, error: 'Eksik bilgi' });
-  }
-
-  if (!balances[userId] || balances[userId][coin] < value) {
-    return res.status(400).json({ success: false, error: 'Yetersiz bakiye' });
+  const { type, amount, address } = req.body;
+  if (!type || !amount || !address) {
+    return res.status(400).json({ success: false, message: 'Tüm alanlar zorunludur' });
   }
 
   try {
-    if (coin === 'ton') {
-      const client = new TonClient({ endpoint: 'https://toncenter.com/api/v2/jsonRPC' });
-      const key = await mnemonicToWalletKey(process.env.TON_MNEMONIC.split(' '));
-      const wallet = WalletContractV4.create({ workchain: 0, publicKey: key.publicKey });
-      const contract = client.open(wallet);
+    if (type === 'TON') {
+      const TON_API = process.env.TONCENTER_API;
+      const TON_WALLET = process.env.TON_SENDER;
+      const TON_PRIVATE = process.env.TON_PRIVATE_KEY;
 
-      const seqno = await contract.getSeqno();
-      await contract.sendTransfer({
-        secretKey: key.secretKey,
-        seqno,
-        messages: [
+      const response = await axios.post(`${TON_API}/sendTransaction`, {
+        from: TON_WALLET,
+        to: address,
+        amount: parseFloat(amount) * 1e9,
+        privateKey: TON_PRIVATE,
+      });
+
+      if (response.data && response.data.txid) {
+        return res.status(200).json({ success: true, message: 'TON transferi başarılı', txid: response.data.txid });
+      } else {
+        return res.status(500).json({ success: false, message: 'TON transferi başarısız' });
+      }
+    } else if (type === 'MONAD') {
+      const MONAD_RPC = process.env.MONAD_RPC;
+      const MONAD_FROM = process.env.MONAD_SENDER;
+      const wei = (parseFloat(amount) * 1e18).toString(16);
+
+      const tx = {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'eth_sendTransaction',
+        params: [
           {
-            to: targetAddress,
-            value: value.toFixed(9).toString(),
-            bounce: false,
+            from: MONAD_FROM,
+            to: address,
+            value: '0x' + wei,
+            gas: '0x5208',
           },
         ],
-      });
-    } else if (coin === 'monad') {
-      const provider = new ethers.JsonRpcProvider(process.env.MONAD_RPC_URL);
-      const wallet = new ethers.Wallet(process.env.MONAD_PRIVATE_KEY, provider);
+      };
 
-      const tx = await wallet.sendTransaction({
-        to: targetAddress,
-        value: ethers.parseEther(value.toString())
-      });
-      await tx.wait();
+      const response = await axios.post(MONAD_RPC, tx);
+
+      if (response.data && response.data.result) {
+        return res.status(200).json({ success: true, message: 'MONAD transferi başarılı', txid: response.data.result });
+      } else {
+        return res.status(500).json({ success: false, message: 'MONAD transferi başarısız' });
+      }
     } else {
-      return res.status(400).json({ success: false, error: 'Geçersiz coin türü' });
+      return res.status(400).json({ success: false, message: 'Geçersiz coin türü' });
     }
-
-    balances[userId][coin] -= value;
-    return res.status(200).json({ success: true });
-  } catch (err) {
-    console.error('Withdraw error:', err);
-    return res.status(500).json({ success: false, error: 'Transfer başarısız' });
+  } catch (error) {
+    console.error('Withdraw error:', error);
+    return res.status(500).json({ success: false, message: 'Sunucu hatası' });
   }
 }
