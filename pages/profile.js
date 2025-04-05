@@ -6,6 +6,7 @@ import { Address } from '@ton/core';
 const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_EXAMPLE_ADDRESS';
 const MONAD_POOL_WALLET = process.env.NEXT_PUBLIC_MONAD_POOL_WALLET || '0xPOOLMONAD1234567890abcdef';
 
+// Format TON address to shorten it
 const formatTonAddress = (rawAddress) => {
   try {
     const address = Address.parseRaw(rawAddress);
