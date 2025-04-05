@@ -1,4 +1,4 @@
-// GÜNCELLENMİŞ TAM PROFILE.JS DOSYASI (COPY yazıları düzeltilmiş)
+// GÜNCELLENMİŞ TAM PROFILE.JS DOSYASI (Copy/Sil simgeli + kısaltılmış adresler)
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import { useRouter } from 'next/router';
@@ -17,31 +17,8 @@ const formatTonAddress = (rawAddress) => {
   }
 };
 
-const getTonBalance = async (address) => {
-  const apiKey = process.env.NEXT_PUBLIC_TONCENTER_API_KEY;
-  const res = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}&api_key=${apiKey}`);
-  const data = await res.json();
-  return data.result ? parseFloat(data.result) / 1e9 : 0;
-};
-
-const getMonadBalance = async (address) => {
-  const res = await fetch(`https://testnet.monad.tools/account/${address}`);
-  const data = await res.json();
-  return parseFloat(data.balance) / 1e18;
-};
-
-const sendWithdrawRequest = async (type, amount, address) => {
-  try {
-    const res = await fetch('/api/withdraw', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, amount, address }),
-    });
-    return await res.json();
-  } catch (err) {
-    console.error('Withdraw error:', err);
-    return { success: false, message: 'İşlem başarısız' };
-  }
+const shortenAddress = (addr) => {
+  return addr?.slice(0, 4) + '...' + addr?.slice(-4);
 };
 
 export default function Profile() {
@@ -80,7 +57,7 @@ export default function Profile() {
       const rawAddr = wallet.account.address;
       const formattedAddr = formatTonAddress(rawAddr);
       setIsConnected(true);
-      setShortAddress(formattedAddr.slice(0, 4) + '...' + formattedAddr.slice(-4));
+      setShortAddress(shortenAddress(formattedAddr));
 
       if (!tonWallets.includes(formattedAddr)) {
         const updated = [...tonWallets, formattedAddr].slice(-3);
@@ -164,10 +141,10 @@ export default function Profile() {
           <ul className="space-y-1 text-xs">
             {tonWallets.map((addr, i) => (
               <li key={i} className="flex justify-between items-center bg-zinc-800 rounded px-2 py-1">
-                <span className="break-all">{addr}</span>
+                <span className="break-all">{shortenAddress(addr)}</span>
                 <div className="flex gap-2">
-                  <button onClick={() => copyToClipboard(addr)} className="text-blue-400 text-xs">Copy</button>
-                  <button onClick={() => handleTonDelete(addr)} className="text-red-400 text-xs">Sil</button>
+                  <button onClick={() => copyToClipboard(addr)} className="text-blue-400 text-xs">📋 Copy</button>
+                  <button onClick={() => handleTonDelete(addr)} className="text-red-400 text-xs">❌ Sil</button>
                   {copiedText === addr && <span className="text-green-400 text-xs">✅</span>}
                 </div>
               </li>
@@ -189,8 +166,8 @@ export default function Profile() {
               <li key={i} className="flex justify-between items-center bg-zinc-800 rounded px-2 py-1">
                 <span className="break-all">{addr}</span>
                 <div className="flex gap-2">
-                  <button onClick={() => copyToClipboard(addr)} className="text-blue-400 text-xs">Copy</button>
-                  <button onClick={() => handleMonadDelete(addr)} className="text-red-400 text-xs">Sil</button>
+                  <button onClick={() => copyToClipboard(addr)} className="text-blue-400 text-xs">📋 Copy</button>
+                  <button onClick={() => handleMonadDelete(addr)} className="text-red-400 text-xs">❌ Sil</button>
                   {copiedText === addr && <span className="text-green-400 text-xs">✅</span>}
                 </div>
               </li>
@@ -209,12 +186,12 @@ export default function Profile() {
             <h3 className="text-lg font-semibold">➕ Deposit</h3>
             <div className="flex justify-between items-center">
               <p>TON Havuz:</p>
-              <button onClick={() => copyToClipboard(TON_POOL_WALLET)} className="text-blue-400 text-xs">Copy</button>
+              <button onClick={() => copyToClipboard(TON_POOL_WALLET)} className="text-blue-400 text-xs">📋 Copy</button>
             </div>
             <p className="text-xs break-all">{TON_POOL_WALLET}</p>
             <div className="flex justify-between items-center">
               <p>MONAD Havuz:</p>
-              <button onClick={() => copyToClipboard(MONAD_POOL_WALLET)} className="text-blue-400 text-xs">Copy</button>
+              <button onClick={() => copyToClipboard(MONAD_POOL_WALLET)} className="text-blue-400 text-xs">📋 Copy</button>
             </div>
             <p className="text-xs break-all">{MONAD_POOL_WALLET}</p>
           </div>
