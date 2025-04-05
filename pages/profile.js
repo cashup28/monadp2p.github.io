@@ -145,7 +145,7 @@ export default function Profile() {
         <button onClick={() => router.back()} className="bg-zinc-800 text-white rounded-full px-4 py-1">← Geri</button>
         <h1 className="text-xl font-bold text-center w-full -ml-8">👤 Profil Sayfan</h1>
       </div>
-      {userId}</p>
+      <p><strong>User ID:</strong> {userId}</p>
         <div className="mt-2 flex justify-end">
           <TonConnectButton />
         </div>
