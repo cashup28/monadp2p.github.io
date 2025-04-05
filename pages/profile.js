@@ -1,3 +1,4 @@
+// Full Profile Page Component with UI + Functional Fixes
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import { useRouter } from 'next/router';
@@ -6,7 +7,6 @@ import { Address } from '@ton/core';
 const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_EXAMPLE_ADDRESS';
 const MONAD_POOL_WALLET = process.env.NEXT_PUBLIC_MONAD_POOL_WALLET || '0xPOOLMONAD1234567890abcdef';
 
-// Format TON address to shorten it
 const formatTonAddress = (rawAddress) => {
   try {
     const address = Address.parseRaw(rawAddress);
@@ -133,6 +133,10 @@ export default function Profile() {
     if (!withdrawAmount || !withdrawAddress) return;
     const res = await sendWithdrawRequest(withdrawType, withdrawAmount, withdrawAddress);
     setWithdrawStatus(res);
+    if (res.success) {
+      setWithdrawAmount('');
+      setWithdrawAddress('');
+    }
   };
 
   return (
@@ -148,7 +152,6 @@ export default function Profile() {
       </div>
 
       <div className="space-y-4 mt-4">
-        {/* User Information */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <p><strong>User ID:</strong> {userId}</p>
           <div className="mt-2 flex items-center justify-between">
@@ -156,18 +159,12 @@ export default function Profile() {
             {isConnected && (
               <div className="flex items-center ml-auto">
                 <span className="text-xs">{shortAddress} ({ton?.toFixed(2) ?? '...'} TON)</span>
-                <button
-                  onClick={() => console.log('Disconnect')} // Disconnect işlevi burada eklenebilir
-                  className="text-red-400 text-xs ml-2"
-                >
-                  Disconnect
-                </button>
+                <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs ml-2">Disconnect</button>
               </div>
             )}
           </div>
         </div>
 
-        {/* TON Cüzdanlar */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
           <ul className="space-y-1 text-xs">
@@ -184,7 +181,6 @@ export default function Profile() {
           </ul>
         </div>
 
-        {/* MONAD Cüzdanlar */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <h3 className="font-semibold mb-2">MONAD Cüzdanlar</h3>
           <input
@@ -209,7 +205,6 @@ export default function Profile() {
           <p className="mt-2 text-sm">Bakiyen: {monad.toFixed(3)} MONAD</p>
         </div>
 
-        {/* Deposit/Withdraw Sekmeleri */}
         <div className="flex justify-center gap-4">
           <button onClick={() => setActiveTab('deposit')} className={`px-4 py-1 rounded-full ${activeTab === 'deposit' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Deposit</button>
           <button onClick={() => setActiveTab('withdraw')} className={`px-4 py-1 rounded-full ${activeTab === 'withdraw' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Withdraw</button>
@@ -232,39 +227,35 @@ export default function Profile() {
         )}
 
         {activeTab === 'withdraw' && (
-          <div className="bg-zinc-900 p-4 rounded-xl space-y-3">
+          <div className="bg-zinc-900 p-4 rounded-xl space-y-4">
             <h3 className="text-lg font-semibold">➖ Withdraw</h3>
-            <select
-              value={withdrawType}
-              onChange={(e) => setWithdrawType(e.target.value)}
-              className="border p-2 rounded w-full text-black"
-            >
-              <option value="TON">TON</option>
-              <option value="MONAD">MONAD</option>
-            </select>
+            <div className="flex gap-4">
+              <button onClick={() => setWithdrawType('TON')} className={`px-3 py-1 rounded-full ${withdrawType === 'TON' ? 'bg-purple-600' : 'bg-zinc-700'}`}>TON</button>
+              <button onClick={() => setWithdrawType('MONAD')} className={`px-3 py-1 rounded-full ${withdrawType === 'MONAD' ? 'bg-purple-600' : 'bg-zinc-700'}`}>MONAD</button>
+            </div>
             <input
               type="number"
               placeholder="Miktar"
               value={withdrawAmount}
               onChange={(e) => setWithdrawAmount(e.target.value)}
-              className="border rounded p-2 w-full text-black"
+              className="w-full p-2 rounded text-black"
             />
             <input
               type="text"
-              placeholder="Alıcı Cüzdan Adresi"
+              placeholder="Hedef cüzdan adresi"
               value={withdrawAddress}
               onChange={(e) => setWithdrawAddress(e.target.value)}
-              className="border rounded p-2 w-full text-black"
+              className="w-full p-2 rounded text-black"
             />
             <button
               onClick={handleWithdraw}
-              className="bg-green-600 text-white px-4 py-2 rounded w-full hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded w-full"
             >
               Gönder
             </button>
             {withdrawStatus && (
-              <p className={withdrawStatus.success ? 'text-green-400' : 'text-red-400'}>
-                {withdrawStatus.message}
+              <p className={`text-sm ${withdrawStatus.success ? 'text-green-400' : 'text-red-400'}`}>
+                {withdrawStatus.message || (withdrawStatus.success ? 'Başarılı!' : 'Hata!')}
               </p>
             )}
           </div>
