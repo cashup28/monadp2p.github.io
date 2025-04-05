@@ -147,21 +147,19 @@ export default function Profile() {
       </div>
 
       <div className="space-y-4 mt-4">
-        {/* Kullanıcı Bilgisi */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <p><strong>User ID:</strong> {userId}</p>
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <TonConnectButton />
             {isConnected && (
-              <div className="flex items-center ml-auto">
+              <div className="flex items-center justify-end w-full sm:w-auto gap-2">
                 <span className="text-xs">{shortAddress} ({ton?.toFixed(2) ?? '...'} TON)</span>
-                <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs ml-2">Bağlantıyı Kes</button>
+                <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs">Bağlantıyı Kes</button>
               </div>
             )}
           </div>
         </div>
 
-        {/* TON Cüzdanlar */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
           <ul className="space-y-1 text-xs">
@@ -178,7 +176,6 @@ export default function Profile() {
           </ul>
         </div>
 
-        {/* MONAD Cüzdanlar */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <h3 className="font-semibold mb-2">MONAD Cüzdanlar</h3>
           <input value={newMonadAddress} onChange={(e) => setNewMonadAddress(e.target.value)} className="border rounded p-2 w-full mb-2 text-black" placeholder="Yeni MONAD adresi" />
@@ -198,13 +195,11 @@ export default function Profile() {
           <p className="mt-2 text-sm">Bakiyen: {monad.toFixed(3)} MONAD</p>
         </div>
 
-        {/* Deposit / Withdraw Sekmeleri */}
         <div className="flex justify-center gap-4">
           <button onClick={() => setActiveTab('deposit')} className={`px-4 py-1 rounded-full ${activeTab === 'deposit' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Deposit</button>
           <button onClick={() => setActiveTab('withdraw')} className={`px-4 py-1 rounded-full ${activeTab === 'withdraw' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Withdraw</button>
         </div>
 
-        {/* Deposit */}
         {activeTab === 'deposit' && (
           <div className="bg-zinc-900 p-4 rounded-xl space-y-2">
             <h3 className="text-lg font-semibold">➕ Deposit</h3>
@@ -221,7 +216,6 @@ export default function Profile() {
           </div>
         )}
 
-        {/* Withdraw */}
         {activeTab === 'withdraw' && (
           <div className="bg-zinc-900 p-4 rounded-xl space-y-4">
             <h3 className="text-lg font-semibold">➖ Withdraw</h3>
