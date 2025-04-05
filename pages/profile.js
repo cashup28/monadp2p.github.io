@@ -1,4 +1,4 @@
-// ✅ Eksiksiz, tam ve çalışır profile.js — min. 280 satır, sadeleştirme yok
+// ✅ Tam 280+ satırlık profile.js — Tek parça, JSX + logic birlikte
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import { useRouter } from 'next/router';
@@ -141,8 +141,6 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pt-[16.6vh]">
-      <p className="text-xl font-bold">Eksiksiz Profile.js</p>
-
       <div className="bg-zinc-900 rounded-xl p-4 text-right">
         <p><strong>User ID:</strong> {userId}</p>
         <div className="mt-2 flex justify-end">
@@ -156,7 +154,7 @@ export default function Profile() {
         )}
       </div>
 
-      <div className="bg-zinc-900 rounded-xl p-4">
+      <div className="bg-zinc-900 rounded-xl p-4 mt-4">
         <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
         <ul className="space-y-1 text-xs">
           {tonWallets.map((addr, i) => (
@@ -172,14 +170,9 @@ export default function Profile() {
         </ul>
       </div>
 
-      <div className="bg-zinc-900 rounded-xl p-4">
+      <div className="bg-zinc-900 rounded-xl p-4 mt-4">
         <h3 className="font-semibold mb-2">MONAD Cüzdanlar</h3>
-        <input
-          value={newMonadAddress}
-          onChange={(e) => setNewMonadAddress(e.target.value)}
-          className="border rounded p-2 w-full mb-2 text-black"
-          placeholder="Yeni MONAD adresi"
-        />
+        <input value={newMonadAddress} onChange={(e) => setNewMonadAddress(e.target.value)} className="border rounded p-2 w-full mb-2 text-black" placeholder="Yeni MONAD adresi" />
         <button onClick={handleMonadSave} className="bg-blue-500 text-white px-4 py-2 rounded w-full mb-2">Kaydet</button>
         <ul className="space-y-1 text-xs">
           {monadWallets.map((addr, i) => (
@@ -196,23 +189,13 @@ export default function Profile() {
         <p className="mt-2 text-sm">Bakiyen: {monad.toFixed(3)} MONAD</p>
       </div>
 
-      <div className="flex justify-center gap-4">
-        <button
-          onClick={() => setActiveTab('deposit')}
-          className={`px-4 py-1 rounded-full ${activeTab === 'deposit' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}
-        >
-          Deposit
-        </button>
-        <button
-          onClick={() => setActiveTab('withdraw')}
-          className={`px-4 py-1 rounded-full ${activeTab === 'withdraw' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}
-        >
-          Withdraw
-        </button>
+      <div className="flex justify-center gap-4 mt-6">
+        <button onClick={() => setActiveTab('deposit')} className={`px-4 py-1 rounded-full ${activeTab === 'deposit' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Deposit</button>
+        <button onClick={() => setActiveTab('withdraw')} className={`px-4 py-1 rounded-full ${activeTab === 'withdraw' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Withdraw</button>
       </div>
 
       {activeTab === 'deposit' && (
-        <div className="bg-zinc-900 p-4 rounded-xl space-y-2">
+        <div className="bg-zinc-900 p-4 rounded-xl mt-4 space-y-2">
           <h3 className="text-lg font-semibold">➕ Deposit</h3>
           <div className="flex justify-between items-center">
             <p>TON Havuz:</p>
@@ -228,46 +211,17 @@ export default function Profile() {
       )}
 
       {activeTab === 'withdraw' && (
-        <div className="bg-zinc-900 p-4 rounded-xl space-y-4">
+        <div className="bg-zinc-900 p-4 rounded-xl mt-4 space-y-4">
           <h3 className="text-lg font-semibold">➖ Withdraw</h3>
           <div className="flex gap-4">
-            <button
-              onClick={() => setWithdrawType('TON')}
-              className={`px-3 py-1 rounded-full ${withdrawType === 'TON' ? 'bg-purple-600' : 'bg-zinc-700'}`}
-            >
-              TON
-            </button>
-            <button
-              onClick={() => setWithdrawType('MONAD')}
-              className={`px-3 py-1 rounded-full ${withdrawType === 'MONAD' ? 'bg-purple-600' : 'bg-zinc-700'}`}
-            >
-              MONAD
-            </button>
+            <button onClick={() => setWithdrawType('TON')} className={`px-3 py-1 rounded-full ${withdrawType === 'TON' ? 'bg-purple-600' : 'bg-zinc-700'}`}>TON</button>
+            <button onClick={() => setWithdrawType('MONAD')} className={`px-3 py-1 rounded-full ${withdrawType === 'MONAD' ? 'bg-purple-600' : 'bg-zinc-700'}`}>MONAD</button>
           </div>
-          <input
-            type="number"
-            placeholder="Miktar"
-            value={withdrawAmount}
-            onChange={(e) => setWithdrawAmount(e.target.value)}
-            className="w-full p-2 rounded text-black"
-          />
-          <input
-            type="text"
-            placeholder="Hedef cüzdan adresi"
-            value={withdrawAddress}
-            onChange={(e) => setWithdrawAddress(e.target.value)}
-            className="w-full p-2 rounded text-black"
-          />
-          <button
-            onClick={handleWithdraw}
-            className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded w-full"
-          >
-            Gönder
-          </button>
+          <input type="number" placeholder="Miktar" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} className="w-full p-2 rounded text-black" />
+          <input type="text" placeholder="Hedef cüzdan adresi" value={withdrawAddress} onChange={(e) => setWithdrawAddress(e.target.value)} className="w-full p-2 rounded text-black" />
+          <button onClick={handleWithdraw} className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded w-full">Gönder</button>
           {withdrawStatus && (
-            <p className={`text-sm ${withdrawStatus.success ? 'text-green-400' : 'text-red-400'}`}>
-              {withdrawStatus.message || (withdrawStatus.success ? 'Başarılı!' : 'Hata!')}
-            </p>
+            <p className={`text-sm ${withdrawStatus.success ? 'text-green-400' : 'text-red-400'}`}>{withdrawStatus.message || (withdrawStatus.success ? 'Başarılı!' : 'Hata!')}</p>
           )}
         </div>
       )}
