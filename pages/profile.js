@@ -150,12 +150,11 @@ export default function Profile() {
           <TonConnectButton />
         </div>
         {isConnected && (
-          <div className="flex justify-end items-center gap-2 mt-2">
-            <span className="text-xs">{shortAddress} ({ton.toFixed(2)} TON)</span>
-            <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs">Bağlantıyı Kes</button>
-          </div>
+        <div className="flex justify-end items-center gap-2 mt-2">
+          <span className="text-xs">{shortAddress} ({ton.toFixed(2)} TON)</span>
+          <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs">Bağlantıyı Kes</button>
         </div>
-        )}
+      )}
 
       <div className="bg-zinc-900 rounded-xl p-4 mt-4">
         <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
