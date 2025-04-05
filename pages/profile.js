@@ -74,6 +74,12 @@ export default function Profile() {
     }
   };
 
+  const handleTonDelete = (address) => {
+    const updated = tonWallets.filter((addr) => addr !== address);
+    setTonWallets(updated);
+    localStorage.setItem('tonWallets', JSON.stringify(updated));
+  };
+
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId') || `user${Math.floor(100000 + Math.random() * 900000)}`;
     localStorage.setItem('userId', storedUserId);
@@ -130,14 +136,15 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pt-[16.6vh] relative">
-      <button
-        onClick={() => router.back()}
-        className="fixed top-4 left-4 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-full shadow-lg z-50"
-      >
-        ← Geri
-      </button>
-
-      <h2 className="text-2xl font-bold mb-4 text-center">👤 Profil Sayfan</h2>
+      <div className="flex items-center">
+        <button
+          onClick={() => router.back()}
+          className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-full shadow-lg"
+        >
+          ←
+        </button>
+        <h2 className="text-2xl font-bold ml-4">👤 Profil Sayfan</h2>
+      </div>
 
       <div className="space-y-4">
         <div className="bg-zinc-900 rounded-xl p-4">
@@ -145,7 +152,15 @@ export default function Profile() {
           <div className="mt-2 flex items-center justify-between">
             <TonConnectButton />
             {isConnected && (
-              <span className="text-xs">{shortAddress} ({ton?.toFixed(2) ?? '...'} TON)</span>
+              <div className="flex items-center ml-auto">
+                <span className="text-xs">{shortAddress} ({ton?.toFixed(2) ?? '...'} TON)</span>
+                <button
+                  onClick={() => console.log('Disconnect')} // Disconnect işlevi burada eklenebilir
+                  className="text-red-400 text-xs ml-2"
+                >
+                  Disconnect
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -153,7 +168,16 @@ export default function Profile() {
         <div className="bg-zinc-900 rounded-xl p-4">
           <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
           <ul className="space-y-1 text-xs">
-            {tonWallets.map((addr, i) => <li key={i} className="break-all">{addr}</li>)}
+            {tonWallets.map((addr, i) => (
+              <li key={i} className="flex justify-between items-center">
+                <span className="break-all">{addr}</span>
+                <div className="flex gap-2">
+                  <button onClick={() => copyToClipboard(addr)} className="text-blue-400 text-xs">📋</button>
+                  <button onClick={() => handleTonDelete(addr)} className="text-red-400 text-xs">❌</button>
+                  {copiedText === addr && <span className="text-green-400 text-xs">✅</span>}
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -206,6 +230,7 @@ export default function Profile() {
           <div className="bg-zinc-900 p-4 rounded-xl space-y-3">
             <h3 className="text-lg font-semibold">➖ Withdraw</h3>
             <select
+                         <select
               value={withdrawType}
               onChange={(e) => setWithdrawType(e.target.value)}
               className="border p-2 rounded w-full text-black"
