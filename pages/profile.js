@@ -154,8 +154,8 @@ export default function Profile() {
             <span className="text-xs">{shortAddress} ({ton.toFixed(2)} TON)</span>
             <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs">Bağlantıyı Kes</button>
           </div>
+        </div>
         )}
-      </div>
 
       <div className="bg-zinc-900 rounded-xl p-4 mt-4">
         <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
