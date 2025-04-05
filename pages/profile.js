@@ -137,17 +137,17 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pt-[16.6vh] relative">
-      <div className="flex items-center">
+      <div className="flex items-center justify-between">
         <button
           onClick={() => router.back()}
           className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-full shadow-lg"
         >
-          ←
+          ← Geri
         </button>
         <h2 className="text-2xl font-bold ml-4">👤 Profil Sayfan</h2>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 mt-4">
         {/* User Information */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <p><strong>User ID:</strong> {userId}</p>
