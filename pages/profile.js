@@ -80,6 +80,12 @@ export default function Profile() {
     localStorage.setItem('tonWallets', JSON.stringify(updated));
   };
 
+  const handleMonadDelete = (address) => {
+    const updated = monadWallets.filter(a => a !== address);
+    setMonadWallets(updated);
+    localStorage.setItem('monadWallets', JSON.stringify(updated));
+  };
+
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId') || `user${Math.floor(100000 + Math.random() * 900000)}`;
     localStorage.setItem('userId', storedUserId);
@@ -122,12 +128,6 @@ export default function Profile() {
     setNewMonadAddress('');
   };
 
-  const handleMonadDelete = (address) => {
-    const updated = monadWallets.filter(a => a !== address);
-    setMonadWallets(updated);
-    localStorage.setItem('monadWallets', JSON.stringify(updated));
-  };
-
   const handleWithdraw = async () => {
     if (!withdrawAmount || !withdrawAddress) return;
     const res = await sendWithdrawRequest(withdrawType, withdrawAmount, withdrawAddress);
@@ -136,6 +136,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pt-[16.6vh] relative">
+      {/* Geri Dön Butonu ve Başlık */}
       <div className="flex items-center">
         <button
           onClick={() => router.back()}
@@ -147,6 +148,7 @@ export default function Profile() {
       </div>
 
       <div className="space-y-4">
+        {/* User Information */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <p><strong>User ID:</strong> {userId}</p>
           <div className="mt-2 flex items-center justify-between">
@@ -165,6 +167,7 @@ export default function Profile() {
           </div>
         </div>
 
+        {/* TON Cüzdanlar */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
           <ul className="space-y-1 text-xs">
@@ -181,6 +184,7 @@ export default function Profile() {
           </ul>
         </div>
 
+        {/* MONAD Cüzdanlar */}
         <div className="bg-zinc-900 rounded-xl p-4">
           <h3 className="font-semibold mb-2">MONAD Cüzdanlar</h3>
           <input
@@ -205,6 +209,7 @@ export default function Profile() {
           <p className="mt-2 text-sm">Bakiyen: {monad.toFixed(3)} MONAD</p>
         </div>
 
+        {/* Deposit/Withdraw Sekmeleri */}
         <div className="flex justify-center gap-4">
           <button onClick={() => setActiveTab('deposit')} className={`px-4 py-1 rounded-full ${activeTab === 'deposit' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Deposit</button>
           <button onClick={() => setActiveTab('withdraw')} className={`px-4 py-1 rounded-full ${activeTab === 'withdraw' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Withdraw</button>
