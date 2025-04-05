@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ton/core": "^0.60.1",
     "@tonconnect/ui-react": "^2.1.0",
     "autoprefixer": "^10.4.15",
     "axios": "^1.8.4",
