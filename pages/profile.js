@@ -230,7 +230,6 @@ export default function Profile() {
           <div className="bg-zinc-900 p-4 rounded-xl space-y-3">
             <h3 className="text-lg font-semibold">➖ Withdraw</h3>
             <select
-                         <select
               value={withdrawType}
               onChange={(e) => setWithdrawType(e.target.value)}
               className="border p-2 rounded w-full text-black"
