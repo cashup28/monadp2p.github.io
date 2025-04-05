@@ -136,7 +136,6 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pt-[16.6vh] relative">
-      {/* Geri Dön Butonu ve Başlık */}
       <div className="flex items-center">
         <button
           onClick={() => router.back()}
