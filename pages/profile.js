@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 28d2d98720d6c3ce954219180f660c6da03d8fae
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import { useRouter } from 'next/router';
@@ -244,3 +248,6 @@ export default function Profile() {
     </div>
   );
 }
+=======
+
+>>>>>>> 77b36d8a5a2a79fe13b474b6f3fe09782faf2bb4
