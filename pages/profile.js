@@ -1,4 +1,4 @@
-
+// ✅ Tam, eksiksiz ve güncel profile.js (adres eşleşmesi ve çalışan COPY butonları dahil)
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import { useRouter } from 'next/router';
@@ -80,17 +80,16 @@ export default function Profile() {
   useEffect(() => {
     if (wallet?.account?.address) {
       const rawAddr = wallet.account.address;
-      const formattedAddr = formatTonAddress(rawAddr);
       setIsConnected(true);
-      setShortAddress(shortenAddress(formattedAddr));
+      setShortAddress(shortenAddress(formatTonAddress(rawAddr)));
 
-      if (!tonWallets.includes(formattedAddr)) {
-        const updated = [...tonWallets, formattedAddr].slice(-3);
+      if (!tonWallets.includes(rawAddr)) {
+        const updated = [...tonWallets, rawAddr].slice(-3);
         setTonWallets(updated);
         localStorage.setItem('tonWallets', JSON.stringify(updated));
       }
 
-      getTonBalance(formattedAddr).then(setTon);
+      getTonBalance(rawAddr).then(setTon);
     }
   }, [wallet]);
 
@@ -142,102 +141,108 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pt-[16.6vh]">
-      <div className="flex items-center justify-between">
-        <button onClick={() => router.back()} className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-full">← Geri</button>
-        <h2 className="text-2xl font-bold ml-4">👤 Profil Sayfan</h2>
-      </div>
-
       <div className="space-y-4 mt-4">
-        <div className="bg-zinc-900 rounded-xl p-4 text-right">
-          <p><strong>User ID:</strong> {userId}</p>
-          <div className="mt-2 flex justify-end">
-            <TonConnectButton />
-          </div>
-          {isConnected && (
-            <div className="flex justify-end items-center gap-2 mt-2">
-              <span className="text-xs">{shortAddress} ({ton.toFixed(2)} TON)</span>
-              <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs">Bağlantıyı Kes</button>
-            </div>
-          )}
+  <div className="flex items-center justify-between">
+  <button onClick={() => router.back()} className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-full">← Geri</button>
+  <h2 className="text-2xl font-bold ml-4">👤 Profil Sayfan</h2>
+</div>
+
+{/* User ID & TonConnect */}
+<div className="bg-zinc-900 rounded-xl p-4 text-right">
+  <p><strong>User ID:</strong> {userId}</p>
+  <div className="mt-2 flex justify-end">
+    <TonConnectButton />
+  </div>
+  {isConnected && (
+    <div className="flex justify-end items-center gap-2 mt-2">
+      <span className="text-xs">{shortAddress} ({ton.toFixed(2)} TON)</span>
+      <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs">Bağlantıyı Kes</button>
+    </div>
+  )}
+</div>
+
+{/* TON Wallets */}
+<div className="bg-zinc-900 rounded-xl p-4">
+  <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
+  <ul className="space-y-1 text-xs">
+    {tonWallets.map((addr, i) => (
+      <li key={i} className="flex justify-between items-center bg-zinc-800 rounded px-2 py-1">
+        <span className="break-all">{shortenAddress(addr)}</span>
+        <div className="flex gap-2">
+          <button onClick={() => copyToClipboard(addr)} className="text-blue-400 text-xs">📋 Copy</button>
+          <button onClick={() => handleTonDelete(addr)} className="text-red-400 text-xs">❌ Sil</button>
+          {copiedText === addr && <span className="text-green-400 text-xs">✅</span>}
         </div>
+      </li>
+    ))}
+  </ul>
+</div>
 
-        <div className="bg-zinc-900 rounded-xl p-4">
-          <h3 className="font-semibold mb-2">TON Cüzdanlar</h3>
-          <ul className="space-y-1 text-xs">
-            {tonWallets.map((addr, i) => (
-              <li key={i} className="flex justify-between items-center bg-zinc-800 rounded px-2 py-1">
-                <span className="break-all">{shortenAddress(addr)}</span>
-                <div className="flex gap-2">
-                  <button onClick={() => copyToClipboard(addr)} className="text-blue-400 text-xs">📋 Copy</button>
-                  <button onClick={() => handleTonDelete(addr)} className="text-red-400 text-xs">❌ Sil</button>
-                  {copiedText === addr && <span className="text-green-400 text-xs">✅</span>}
-                </div>
-              </li>
-            ))}
-          </ul>
+{/* MONAD Wallets */}
+<div className="bg-zinc-900 rounded-xl p-4">
+  <h3 className="font-semibold mb-2">MONAD Cüzdanlar</h3>
+  <input
+    value={newMonadAddress}
+    onChange={(e) => setNewMonadAddress(e.target.value)}
+    className="border rounded p-2 w-full mb-2 text-black"
+    placeholder="Yeni MONAD adresi"
+  />
+  <button onClick={handleMonadSave} className="bg-blue-500 text-white px-4 py-2 rounded w-full mb-2">Kaydet</button>
+  <ul className="space-y-1 text-xs">
+    {monadWallets.map((addr, i) => (
+      <li key={i} className="flex justify-between items-center bg-zinc-800 rounded px-2 py-1">
+        <span className="break-all">{addr}</span>
+        <div className="flex gap-2">
+          <button onClick={() => copyToClipboard(addr)} className="text-blue-400 text-xs">📋 Copy</button>
+          <button onClick={() => handleMonadDelete(addr)} className="text-red-400 text-xs">❌ Sil</button>
+          {copiedText === addr && <span className="text-green-400 text-xs">✅</span>}
         </div>
+      </li>
+    ))}
+  </ul>
+  <p className="mt-2 text-sm">Bakiyen: {monad.toFixed(3)} MONAD</p>
+</div>
 
-        <div className="bg-zinc-900 rounded-xl p-4">
-          <h3 className="font-semibold mb-2">MONAD Cüzdanlar</h3>
-          <input
-            value={newMonadAddress}
-            onChange={(e) => setNewMonadAddress(e.target.value)}
-            className="border rounded p-2 w-full mb-2 text-black"
-            placeholder="Yeni MONAD adresi"
-          />
-          <button onClick={handleMonadSave} className="bg-blue-500 text-white px-4 py-2 rounded w-full mb-2">Kaydet</button>
-          <ul className="space-y-1 text-xs">
-            {monadWallets.map((addr, i) => (
-              <li key={i} className="flex justify-between items-center bg-zinc-800 rounded px-2 py-1">
-                <span className="break-all">{addr}</span>
-                <div className="flex gap-2">
-                  <button onClick={() => copyToClipboard(addr)} className="text-blue-400 text-xs">📋 Copy</button>
-                  <button onClick={() => handleMonadDelete(addr)} className="text-red-400 text-xs">❌ Sil</button>
-                  {copiedText === addr && <span className="text-green-400 text-xs">✅</span>}
-                </div>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-sm">Bakiyen: {monad.toFixed(3)} MONAD</p>
-        </div>
+{/* Deposit / Withdraw Tabs */}
+<div className="flex justify-center gap-4">
+  <button onClick={() => setActiveTab('deposit')} className={`px-4 py-1 rounded-full ${activeTab === 'deposit' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Deposit</button>
+  <button onClick={() => setActiveTab('withdraw')} className={`px-4 py-1 rounded-full ${activeTab === 'withdraw' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Withdraw</button>
+</div>
 
-        <div className="flex justify-center gap-4">
-          <button onClick={() => setActiveTab('deposit')} className={`px-4 py-1 rounded-full ${activeTab === 'deposit' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Deposit</button>
-          <button onClick={() => setActiveTab('withdraw')} className={`px-4 py-1 rounded-full ${activeTab === 'withdraw' ? 'bg-purple-600 text-white' : 'bg-zinc-700 text-gray-300'}`}>Withdraw</button>
-        </div>
+{activeTab === 'deposit' && (
+  <div className="bg-zinc-900 p-4 rounded-xl space-y-2">
+    <h3 className="text-lg font-semibold">➕ Deposit</h3>
+    <div className="flex justify-between items-center">
+      <p>TON Havuz:</p>
+      <button onClick={() => copyToClipboard(TON_POOL_WALLET)} className="text-blue-400 text-xs">📋 Copy</button>
+    </div>
+    <p className="text-xs break-all">{TON_POOL_WALLET}</p>
+    <div className="flex justify-between items-center">
+      <p>MONAD Havuz:</p>
+      <button onClick={() => copyToClipboard(MONAD_POOL_WALLET)} className="text-blue-400 text-xs">📋 Copy</button>
+    </div>
+    <p className="text-xs break-all">{MONAD_POOL_WALLET}</p>
+  </div>
+)}
 
-        {activeTab === 'deposit' && (
-          <div className="bg-zinc-900 p-4 rounded-xl space-y-2">
-            <h3 className="text-lg font-semibold">➕ Deposit</h3>
-            <div className="flex justify-between items-center">
-              <p>TON Havuz:</p>
-              <button onClick={() => copyToClipboard(TON_POOL_WALLET)} className="text-blue-400 text-xs">📋 Copy</button>
-            </div>
-            <p className="text-xs break-all">{TON_POOL_WALLET}</p>
-            <div className="flex justify-between items-center">
-              <p>MONAD Havuz:</p>
-              <button onClick={() => copyToClipboard(MONAD_POOL_WALLET)} className="text-blue-400 text-xs">📋 Copy</button>
-            </div>
-            <p className="text-xs break-all">{MONAD_POOL_WALLET}</p>
-          </div>
-        )}
-
-        {activeTab === 'withdraw' && (
-          <div className="bg-zinc-900 p-4 rounded-xl space-y-4">
-            <h3 className="text-lg font-semibold">➖ Withdraw</h3>
-            <div className="flex gap-4">
-              <button onClick={() => setWithdrawType('TON')} className={`px-3 py-1 rounded-full ${withdrawType === 'TON' ? 'bg-purple-600' : 'bg-zinc-700'}`}>TON</button>
-              <button onClick={() => setWithdrawType('MONAD')} className={`px-3 py-1 rounded-full ${withdrawType === 'MONAD' ? 'bg-purple-600' : 'bg-zinc-700'}`}>MONAD</button>
-            </div>
-            <input type="number" placeholder="Miktar" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} className="w-full p-2 rounded text-black" />
-            <input type="text" placeholder="Hedef cüzdan adresi" value={withdrawAddress} onChange={(e) => setWithdrawAddress(e.target.value)} className="w-full p-2 rounded text-black" />
-            <button onClick={handleWithdraw} className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded w-full">Gönder</button>
-            {withdrawStatus && (
-              <p className={`text-sm ${withdrawStatus.success ? 'text-green-400' : 'text-red-400'}`}>{withdrawStatus.message || (withdrawStatus.success ? 'Başarılı!' : 'Hata!')}</p>
-            )}
-          </div>
-        )}
-      </div>
+{activeTab === 'withdraw' && (
+  <div className="bg-zinc-900 p-4 rounded-xl space-y-4">
+    <h3 className="text-lg font-semibold">➖ Withdraw</h3>
+    <div className="flex gap-4">
+      <button onClick={() => setWithdrawType('TON')} className={`px-3 py-1 rounded-full ${withdrawType === 'TON' ? 'bg-purple-600' : 'bg-zinc-700'}`}>TON</button>
+      <button onClick={() => setWithdrawType('MONAD')} className={`px-3 py-1 rounded-full ${withdrawType === 'MONAD' ? 'bg-purple-600' : 'bg-zinc-700'}`}>MONAD</button>
+    </div>
+    <input type="number" placeholder="Miktar" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} className="w-full p-2 rounded text-black" />
+    <input type="text" placeholder="Hedef cüzdan adresi" value={withdrawAddress} onChange={(e) => setWithdrawAddress(e.target.value)} className="w-full p-2 rounded text-black" />
+    <button onClick={handleWithdraw} className="bg-green-600 hover:bg-green-500 px-4 py-2 rounded w-full">Gönder</button>
+    {withdrawStatus && (
+      <p className={`text-sm ${withdrawStatus.success ? 'text-green-400' : 'text-red-400'}`}>{withdrawStatus.message || (withdrawStatus.success ? 'Başarılı!' : 'Hata!')}</p>
+    )}
+  </div>
+)}
+</div>
     </div>
   );
+}
+  ]
 }
