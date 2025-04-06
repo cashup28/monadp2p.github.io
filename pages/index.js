@@ -17,19 +17,18 @@ export default function Profile() {
   const [buyStatus, setBuyStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // User setup
+  // Kullanıcı ID setup'ı
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId') || `user${Math.floor(100000 + Math.random() * 900000)}`;
     localStorage.setItem('userId', storedUserId);
     setUserId(storedUserId);
   }, []);
 
-  // Detect wallet connection and fetch balance
+  // Cüzdan bağlantısını kontrol et ve bakiye al
   useEffect(() => {
     if (wallet?.account?.address) {
       setIsConnected(true);
-      // Fetch TON balance here if required, for now assuming it's 0 for demonstration
-      setTonBalance(0);
+      setTonBalance(0); // Sabit olarak 0 TON
     } else {
       setIsConnected(false);
     }
@@ -41,12 +40,12 @@ export default function Profile() {
       return;
     }
     
-    // Assuming the TON to MONAD conversion rate is 1 TON = 8 MONAD
+    // 1 TON = 8 MONAD dönüşüm oranı
     const monadAmount = parseFloat(depositAmount) * TON_TO_MONAD_RATE;
 
     setLoading(true);
 
-    // Simulate the process of transferring TON to the user's MONAD address
+    // TON gönderimi ve MONAD adresine gönderilmesi işlemi simülasyonu
     setTimeout(() => {
       setBuyStatus(`Ton: ${depositAmount} gönderildi, Monad adresine ${monadAmount.toFixed(2)} MONAD gönderilecek.`);
       setLoading(false);
@@ -64,6 +63,7 @@ export default function Profile() {
         <p className="font-bold">Kullanıcı ID: {userId}</p>
       </div>
 
+      {/* TON Miktarı ve MONAD Adresi giriş alanları */}
       <div className="bg-zinc-900 rounded-xl p-4 mb-4">
         <h3 className="font-semibold mb-2">TON Miktarı</h3>
         <input
@@ -98,10 +98,18 @@ export default function Profile() {
         )}
       </div>
 
+      {/* Hesap bilgisi */}
       <div className="bg-zinc-900 rounded-xl p-4">
         <h3 className="font-semibold mb-2">Hesap Bilgisi</h3>
         <p><strong>Bakiyeniz:</strong> {tonBalance.toFixed(2)} TON</p>
       </div>
+
+      {/* Bağlantı butonu */}
+      <div className="mt-2 flex justify-end">
+        <TonConnectButton />
+      </div>
+
+      {/* Bağlantıyı kesme ve adres gösterimi kaldırıldı */}
     </div>
   );
 }
