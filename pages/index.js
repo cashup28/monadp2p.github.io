@@ -1,76 +1,132 @@
-// pages/index.js (final sürüm, mockup uyumlu, deploya hazır)
-
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
+import { Address, fromNano, toNano } from '@ton/core';
 
-export default function Home() {
-  const [userId, setUserId] = useState('');
-  const [monadBalance, setMonadBalance] = useState(null);
-  const [tonBalance, setTonBalance] = useState(null);
-  const router = useRouter();
+const MONAD_POOL_WALLET = process.env.NEXT_PUBLIC_MONAD_POOL_WALLET || '0xPOOLMONAD1234567890abcdef';
+const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_ORNEK_ADRES';
+const TON_TO_MONAD_RATIO = 8; // 1 TON = 8 MONAD
+
+const getTonBalance = async (address) => {
+  const apiKey = process.env.NEXT_PUBLIC_TONCENTER_API_KEY;
+  const res = await fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${address}&api_key=${apiKey}`);
+  const data = await res.json();
+  return data.result ? parseFloat(fromNano(data.result)) : 0;
+};
+
+const sendTransaction = async (amount, address) => {
+  // Bu kısım backend işlem gerektirir. Burada sadece örnek veriyorum.
+  // Transfer işlemleri backend'den yapılacak.
+  return {
+    success: true,
+    message: `Ton: ${amount} gönderildi, Monad adresine ${amount * TON_TO_MONAD_RATIO} MONAD gönderilecek`
+  };
+};
+
+export default function Profile() {
+  const [tonConnectUI] = useTonConnectUI();
+  const wallet = useTonWallet();
+  const [isConnected, setIsConnected] = useState(false);
+  const [userId, setUserId] = useState('919006');
+  const [tonBalance, setTonBalance] = useState(0);
+  const [tonAmount, setTonAmount] = useState('');
+  const [monadAddress, setMonadAddress] = useState('');
+  const [transactionStatus, setTransactionStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const storedId = localStorage.getItem('userId');
-    if (storedId) setUserId(storedId);
+    if (wallet?.account?.address) {
+      const rawAddr = wallet.account.address;
+      setIsConnected(true);
 
-    const monad = JSON.parse(localStorage.getItem('monadWallets') || '[]');
-    const ton = JSON.parse(localStorage.getItem('tonWallets') || '[]');
+      getTonBalance(rawAddr).then((balance) => {
+        setTonBalance(balance);
+      });
+    }
+  }, [wallet]);
 
-    if (monad.length > 0) {
-      fetch(`https://testnet.monad.tools/account/${monad[monad.length - 1]}`)
-        .then((res) => res.json())
-        .then((data) => setMonadBalance(parseFloat(data.balance) / 1e18))
-        .catch(() => setMonadBalance(0));
+  const handleBuy = async () => {
+    if (!tonAmount || isNaN(tonAmount) || Number(tonAmount) <= 0) {
+      setTransactionStatus({ success: false, message: 'Lütfen geçerli bir TON miktarı girin.' });
+      return;
     }
 
-    if (ton.length > 0 && ton[ton.length - 1]) {
-      fetch(`https://toncenter.com/api/v2/getAddressBalance?address=${ton[ton.length - 1]}&api_key=${process.env.NEXT_PUBLIC_TONCENTER_API_KEY}`)
-        .then((res) => res.json())
-        .then((data) => setTonBalance(parseFloat(data.result) / 1e9))
-        .catch(() => setTonBalance(0));
+    if (!monadAddress) {
+      setTransactionStatus({ success: false, message: 'Lütfen bir MONAD adresi girin.' });
+      return;
     }
-  }, []);
+
+    setLoading(true);
+    try {
+      // Buy işlemi
+      const result = await sendTransaction(tonAmount, monadAddress);
+      setTransactionStatus(result);
+      if (result.success) {
+        setTonAmount('');
+        setMonadAddress('');
+      }
+    } catch (error) {
+      setTransactionStatus({ success: false, message: 'İşlem sırasında hata oluştu.' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 flex flex-col items-center justify-start">
-      <button
-        onClick={() => router.back()}
-        className="fixed top-4 left-4 bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-full shadow-lg z-50"
-      >
-        ← Geri
-      </button>
-
-      <div className="mt-[16.6vh] w-full max-w-md space-y-4">
-        <div className="flex justify-between items-center px-4">
-          <p className="text-xs text-gray-400">USER ID</p>
-          <p className="text-xs text-gray-400">MONAD</p>
-          <p className="text-xs text-gray-400">TON</p>
+    <div className="min-h-screen bg-black text-white p-4">
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={() => tonConnectUI.disconnect()} className="bg-zinc-800 text-white rounded-full px-4 py-1">
+          ← Geri
+        </button>
+        <h1 className="text-xl font-bold text-center w-full -ml-8">👤 Profil Sayfan</h1>
+      </div>
+      <p><strong>Kullanıcı ID:</strong> {userId}</p>
+      <div className="mt-2 flex justify-end">
+        <TonConnectButton />
+      </div>
+      {isConnected && (
+        <div className="flex justify-end items-center gap-2 mt-2">
+          <span className="text-xs">{wallet.account?.address}</span>
+          <button onClick={() => tonConnectUI.disconnect()} className="text-red-400 text-xs">Bağlantıyı Kes</button>
         </div>
+      )}
 
-        <div className="grid grid-cols-3 gap-2 px-4">
-          <div className="bg-zinc-900 rounded-xl p-3 text-center">
-            <p className="font-bold text-lg">{userId}</p>
-          </div>
-          <div className="bg-zinc-900 rounded-xl p-3 text-center">
-            <p className="font-bold text-lg">{monadBalance !== null ? monadBalance.toFixed(2) : '...'}</p>
-          </div>
-          <div className="bg-zinc-900 rounded-xl p-3 text-center">
-            <p className="font-bold text-lg">{tonBalance !== null ? tonBalance.toFixed(2) : '...'}</p>
-          </div>
-        </div>
+      <div className="bg-zinc-900 rounded-xl p-4 mt-4">
+        <h3 className="font-semibold mb-2">TON Miktarı</h3>
+        <input
+          type="number"
+          value={tonAmount}
+          onChange={(e) => setTonAmount(e.target.value)}
+          className="w-full p-2 rounded text-black mb-2"
+          placeholder="Almak istediğiniz TON miktarını girin"
+          min="0.1"
+          step="0.1"
+        />
+        <h4 className="font-semibold mb-2">MONAD Adresi</h4>
+        <input
+          type="text"
+          value={monadAddress}
+          onChange={(e) => setMonadAddress(e.target.value)}
+          className="w-full p-2 rounded text-black mb-2"
+          placeholder="MONAD adresinizi girin"
+        />
+        <button
+          onClick={handleBuy}
+          disabled={loading}
+          className={`bg-blue-500 text-white px-4 py-2 rounded w-full ${loading ? 'opacity-50' : ''}`}
+        >
+          {loading ? 'İşleniyor...' : 'Buy'}
+        </button>
 
-        <div className="flex justify-center my-6">
-          <img src="/mascot.png" alt="Monad Mascot" className="h-40 w-40 object-contain" />
-        </div>
+        {transactionStatus && (
+          <p className={`mt-2 text-sm ${transactionStatus.success ? 'text-green-400' : 'text-red-400'}`}>
+            {transactionStatus.message}
+          </p>
+        )}
+      </div>
 
-        <div className="grid grid-cols-2 gap-4 px-2">
-          <a href="/trade" className="bg-purple-600 text-white rounded-xl p-4 text-center font-semibold">TAKAS YAP</a>
-          <a href="/orders" className="bg-purple-600 text-white rounded-xl p-4 text-center font-semibold">EMİRLERİM</a>
-          <a href="/history" className="bg-purple-600 text-white rounded-xl p-4 text-center font-semibold">GEÇMİŞ</a>
-          <a href="/profile" className="bg-purple-600 text-white rounded-xl p-4 text-center font-semibold">PROFİL</a>
-          <a href="/refer" className="bg-purple-600 text-white rounded-xl p-4 text-center font-semibold">REFERANS</a>
-          <a href="/support" className="bg-purple-600 text-white rounded-xl p-4 text-center font-semibold">DESTEK</a>
-        </div>
+      <div className="bg-zinc-900 rounded-xl p-4 mt-4">
+        <h3 className="font-semibold mb-2">Hesap Bilgisi</h3>
+        <p><strong>Bakiyeniz:</strong> {tonBalance.toFixed(2)} TON</p>
       </div>
     </div>
   );
