@@ -60,10 +60,7 @@ export default function Profile() {
   const [kullaniciId, setKullaniciId] = useState('');
   const [tonBakiye, setTonBakiye] = useState(0);
   const [depositMiktar, setDepositMiktar] = useState('');
-  const [depositDurum, setDepositDurum] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const [depositDurum, setDepositDurum] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(false);
 
   // Kullanıcı ID'sini localStorage'dan al veya oluştur
