@@ -3,11 +3,12 @@ import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-
 import { useRouter } from 'next/router';
 import { Address, fromNano } from '@ton/core';
 
+// Çevresel değişkenlerden havuz adreslerini al
 const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_ORNEK_ADRES';
 const MONAD_POOL_WALLET = process.env.NEXT_PUBLIC_MONAD_POOL_WALLET || '0xPOOLMONAD1234567890abcdef';
 
 // TON adresini formatlayan yardımcı fonksiyon
-const formatTonAddress = (hamAdres: string): string => {
+const formatTonAddress = (hamAdres) => {
   try {
     const adres = Address.parseRaw(hamAdres);
     return adres.toString({ urlSafe: true, bounceable: true });
@@ -18,7 +19,7 @@ const formatTonAddress = (hamAdres: string): string => {
 };
 
 // TON bakiyesi sorgulama
-const getTonBalance = async (adres: string): Promise<number> => {
+const getTonBalance = async (adres) => {
   try {
     const apiKey = process.env.NEXT_PUBLIC_TONCENTER_API_KEY;
     const cevap = await fetch(
@@ -33,7 +34,7 @@ const getTonBalance = async (adres: string): Promise<number> => {
 };
 
 // Deposit işlemini backend'e gönder
-const sendDepositRequest = async (miktar: number, adres: string) => {
+const sendDepositRequest = async (miktar, adres) => {
   try {
     console.log("Deposit gönderiliyor:", { miktar, adres });  // Debugging: Parametreleri kontrol et
     const yanit = await fetch('/api/deposit', {
@@ -65,10 +66,7 @@ export default function Profile() {
   const [kullaniciId, setKullaniciId] = useState('');
   const [tonBakiye, setTonBakiye] = useState(0);
   const [depositMiktar, setDepositMiktar] = useState('');
-  const [depositDurum, setDepositDurum] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const [depositDurum, setDepositDurum] = useState(null);
   const [yukleniyor, setYukleniyor] = useState(false);
 
   useEffect(() => {
