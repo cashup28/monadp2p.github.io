@@ -10,7 +10,7 @@ export default function Profile() {
   const router = useRouter();
 
   const [isConnected, setIsConnected] = useState(false);
-  const [userId, setUserId] = useState('919006');
+  const [userId, setUserId] = useState('user883121');
   const [tonBalance, setTonBalance] = useState(0);
   const [depositAmount, setDepositAmount] = useState('');
   const [monadAddress, setMonadAddress] = useState('');
@@ -104,12 +104,10 @@ export default function Profile() {
         <p><strong>Bakiyeniz:</strong> {tonBalance.toFixed(2)} TON</p>
       </div>
 
-      {/* Bağlantı butonu */}
+      {/* TonConnect Bağlantısı */}
       <div className="mt-2 flex justify-end">
         <TonConnectButton />
       </div>
-
-      {/* Bağlantıyı kesme ve adres gösterimi kaldırıldı */}
     </div>
   );
 }
