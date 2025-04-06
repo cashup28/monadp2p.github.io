@@ -5,7 +5,6 @@ import { Address, fromNano } from '@ton/core';
 
 // Çevresel değişkenlerden havuz adreslerini al
 const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_ORNEK_ADRES';
-const MONAD_POOL_WALLET = process.env.NEXT_PUBLIC_MONAD_POOL_WALLET || '0xPOOLMONAD1234567890abcdef';
 
 // TON adresini formatlayan yardımcı fonksiyon
 const formatTonAddress = (hamAdres) => {
@@ -36,20 +35,15 @@ const getTonBalance = async (adres) => {
 // Deposit işlemini backend'e gönder
 const sendDepositRequest = async (miktar, adres) => {
   try {
-    console.log("Deposit gönderiliyor:", { miktar, adres });  // Debugging: Parametreleri kontrol et
     const yanit = await fetch('/api/deposit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         amount: miktar,
-        address: adres 
+        address: adres,
       }),
     });
-
-    const sonuc = await yanit.json();
-    console.log("Deposit yanıtı:", sonuc);  // Debugging: Yanıtı kontrol et
-
-    return sonuc;
+    return await yanit.json();
   } catch (hata) {
     console.error('Deposit gönderim hatası:', hata);
     return { success: false, message: 'İşlem sırasında hata oluştu' };
@@ -66,16 +60,21 @@ export default function Profile() {
   const [kullaniciId, setKullaniciId] = useState('');
   const [tonBakiye, setTonBakiye] = useState(0);
   const [depositMiktar, setDepositMiktar] = useState('');
-  const [depositDurum, setDepositDurum] = useState(null);
+  const [depositDurum, setDepositDurum] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const [yukleniyor, setYukleniyor] = useState(false);
 
+  // Kullanıcı ID'sini localStorage'dan al veya oluştur
   useEffect(() => {
-    const kayitliKullaniciId = localStorage.getItem('kullaniciId') || 
+    const kayitliKullaniciId = localStorage.getItem('kullaniciId') ||
       `kullanici${Math.floor(100000 + Math.random() * 900000)}`;
     localStorage.setItem('kullaniciId', kayitliKullaniciId);
     setKullaniciId(kayitliKullaniciId);
   }, []);
 
+  // Cüzdan bağlantısı değiştiğinde tetiklenir
   useEffect(() => {
     if (wallet?.account?.address) {
       const hamAdres = wallet.account.address;
