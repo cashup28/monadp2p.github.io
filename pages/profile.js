@@ -1,55 +1,56 @@
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import { useRouter } from 'next/router';
-import { Address } from '@ton/core';
+import { Address, fromNano } from '@ton/core';
 
-// Çevresel değişkenlerden havuz adreslerini al
 const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_ORNEK_ADRES';
 const MONAD_POOL_WALLET = process.env.NEXT_PUBLIC_MONAD_POOL_WALLET || '0xPOOLMONAD1234567890abcdef';
 
 // TON adresini formatlayan yardımcı fonksiyon
-const formatTonAddress = (rawAddress) => {
+const formatTonAddress = (hamAdres: string): string => {
   try {
-    const address = Address.parseRaw(rawAddress);
-    return address.toString({ urlSafe: true, bounceable: true });
-  } catch (error) {
-    console.error('TON adres formatlama hatası:', error);
-    return rawAddress;
+    const adres = Address.parseRaw(hamAdres);
+    return adres.toString({ urlSafe: true, bounceable: true });
+  } catch (hata) {
+    console.error('TON adres formatlama hatası:', hata);
+    return hamAdres;
   }
 };
 
-// Kısa adres gösterimi
-const shortenAddress = (addr) => addr?.slice(0, 4) + '...' + addr?.slice(-4);
-
 // TON bakiyesi sorgulama
-const getTonBalance = async (address) => {
+const getTonBalance = async (adres: string): Promise<number> => {
   try {
     const apiKey = process.env.NEXT_PUBLIC_TONCENTER_API_KEY;
-    const response = await fetch(
-      `https://toncenter.com/api/v2/getAddressBalance?address=${address}&api_key=${apiKey}`
+    const cevap = await fetch(
+      `https://toncenter.com/api/v2/getAddressBalance?address=${adres}&api_key=${apiKey}`
     );
-    const data = await response.json();
-    return data.result ? parseFloat(fromNano(data.result)) : 0;
-  } catch (error) {
-    console.error('Bakiye sorgulama hatası:', error);
+    const veri = await cevap.json();
+    return veri.result ? parseFloat(fromNano(veri.result)) : 0;
+  } catch (hata) {
+    console.error('Bakiye sorgulama hatası:', hata);
     return 0;
   }
 };
 
 // Deposit işlemini backend'e gönder
-const sendDepositRequest = async (amount, address) => {
+const sendDepositRequest = async (miktar: number, adres: string) => {
   try {
-    const response = await fetch('/api/deposit', {
+    console.log("Deposit gönderiliyor:", { miktar, adres });  // Debugging: Parametreleri kontrol et
+    const yanit = await fetch('/api/deposit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        amount: amount,
-        address: address 
+        amount: miktar,
+        address: adres 
       }),
     });
-    return await response.json();
-  } catch (error) {
-    console.error('Deposit gönderim hatası:', error);
+
+    const sonuc = await yanit.json();
+    console.log("Deposit yanıtı:", sonuc);  // Debugging: Yanıtı kontrol et
+
+    return sonuc;
+  } catch (hata) {
+    console.error('Deposit gönderim hatası:', hata);
     return { success: false, message: 'İşlem sırasında hata oluştu' };
   }
 };
@@ -59,48 +60,44 @@ export default function Profile() {
   const wallet = useTonWallet();
   const router = useRouter();
 
-  // Durum değişkenleri
-  const [isConnected, setIsConnected] = useState(false);
-  const [shortAddress, setShortAddress] = useState('');
-  const [userId, setUserId] = useState('');
-  const [tonBalance, setTonBalance] = useState(0);
-  const [depositAmount, setDepositAmount] = useState('');
-  const [depositStatus, setDepositStatus] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [baglandi, setBaglandi] = useState(false);
+  const [kisaAdres, setKisaAdres] = useState('');
+  const [kullaniciId, setKullaniciId] = useState('');
+  const [tonBakiye, setTonBakiye] = useState(0);
+  const [depositMiktar, setDepositMiktar] = useState('');
+  const [depositDurum, setDepositDurum] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+  const [yukleniyor, setYukleniyor] = useState(false);
 
-  // Kullanıcı ID'sini localStorage'dan al veya oluştur
   useEffect(() => {
-    const storedUserId = localStorage.getItem('userId') || 
-      `user${Math.floor(100000 + Math.random() * 900000)}`;
-    localStorage.setItem('userId', storedUserId);
-    setUserId(storedUserId);
+    const kayitliKullaniciId = localStorage.getItem('kullaniciId') || 
+      `kullanici${Math.floor(100000 + Math.random() * 900000)}`;
+    localStorage.setItem('kullaniciId', kayitliKullaniciId);
+    setKullaniciId(kayitliKullaniciId);
   }, []);
 
-  // Cüzdan bağlantısı değiştiğinde tetiklenir
   useEffect(() => {
     if (wallet?.account?.address) {
-      const rawAddress = wallet.account.address;
-      const formattedAddress = formatTonAddress(rawAddress); // Formatlama işlemi
-      setIsConnected(true);
-      setShortAddress(shortenAddress(formattedAddress));
-
-      // Cüzdan adresini localStorage'a kaydediyoruz
-      localStorage.setItem('connectedTonAddress', formattedAddress);  // Burada adresi doğru formatta kaydediyoruz
-
+      const hamAdres = wallet.account.address;
+      setBaglandi(true);
+      setKisaAdres(formatTonAddress(hamAdres));
+      
       // Bakiye güncelleme
-      getTonBalance(rawAddress).then(balance => {
-        setTonBalance(balance);
+      getTonBalance(hamAdres).then(bakiye => {
+        setTonBakiye(bakiye);
       });
     } else {
-      setIsConnected(false);
-      setShortAddress('');
+      setBaglandi(false);
+      setKisaAdres('');
     }
   }, [wallet]);
 
   // Deposit işlemini gerçekleştir
   const handleDeposit = async () => {
-    if (!depositAmount || isNaN(Number(depositAmount)) || Number(depositAmount) <= 0) {
-      setDepositStatus({
+    if (!depositMiktar || isNaN(Number(depositMiktar)) || Number(depositMiktar) <= 0) {
+      setDepositDurum({
         success: false,
         message: 'Lütfen geçerli bir miktar girin'
       });
@@ -108,36 +105,36 @@ export default function Profile() {
     }
 
     if (!wallet?.account?.address) {
-      setDepositStatus({
+      setDepositDurum({
         success: false,
         message: 'Cüzdan bağlı değil'
       });
       return;
     }
 
-    setIsLoading(true);
+    setYukleniyor(true);
     
     try {
-      const result = await sendDepositRequest(
-        Number(depositAmount),
+      const sonuc = await sendDepositRequest(
+        Number(depositMiktar),
         wallet.account.address
       );
       
-      setDepositStatus(result);
+      setDepositDurum(sonuc);
       
-      if (result.success) {
-        setDepositAmount('');
+      if (sonuc.success) {
+        setDepositMiktar('');
         // Bakiye yenile
-        const updatedBalance = await getTonBalance(wallet.account.address);
-        setTonBalance(updatedBalance);
+        const guncelBakiye = await getTonBalance(wallet.account.address);
+        setTonBakiye(guncelBakiye);
       }
-    } catch (error) {
-      setDepositStatus({
+    } catch (hata) {
+      setDepositDurum({
         success: false,
         message: 'Beklenmeyen bir hata oluştu'
       });
     } finally {
-      setIsLoading(false);
+      setYukleniyor(false);
     }
   };
 
@@ -155,7 +152,7 @@ export default function Profile() {
       </div>
       
       {/* Kullanıcı bilgileri */}
-      <p><strong>Kullanıcı ID:</strong> {userId}</p>
+      <p><strong>Kullanıcı ID:</strong> {kullaniciId}</p>
       
       {/* Cüzdan bağlantı butonu */}
       <div className="mt-2 flex justify-end">
@@ -163,10 +160,10 @@ export default function Profile() {
       </div>
       
       {/* Bağlı cüzdan bilgisi */}
-      {isConnected && (
+      {baglandi && (
         <div className="flex justify-end items-center gap-2 mt-2">
           <span className="text-xs">
-            {shortAddress} ({tonBalance.toFixed(2)} TON)
+            {kisaAdres} ({tonBakiye.toFixed(2)} TON)
           </span>
           <button 
             onClick={() => tonConnectUI.disconnect()} 
@@ -182,8 +179,8 @@ export default function Profile() {
         <h3 className="font-semibold mb-2">Deposit Yap</h3>
         <input
           type="number"
-          value={depositAmount}
-          onChange={(e) => setDepositAmount(e.target.value)}
+          value={depositMiktar}
+          onChange={(e) => setDepositMiktar(e.target.value)}
           className="w-full p-2 rounded text-black"
           placeholder="TON miktarı girin"
           min="0.1"
@@ -191,20 +188,20 @@ export default function Profile() {
         />
         <button 
           onClick={handleDeposit} 
-          disabled={isLoading}
+          disabled={yukleniyor}
           className={`bg-blue-500 text-white px-4 py-2 rounded w-full mt-2 ${
-            isLoading ? 'opacity-50' : ''
+            yukleniyor ? 'opacity-50' : ''
           }`}
         >
-          {isLoading ? 'İşleniyor...' : 'Deposit Yap'}
+          {yukleniyor ? 'İşleniyor...' : 'Deposit Yap'}
         </button>
         
         {/* İşlem durumu mesajı */}
-        {depositStatus && (
+        {depositDurum && (
           <p className={`mt-2 text-sm ${
-            depositStatus.success ? 'text-green-400' : 'text-red-400'
+            depositDurum.success ? 'text-green-400' : 'text-red-400'
           }`}>
-            {depositStatus.message}
+            {depositDurum.message}
           </p>
         )}
       </div>
@@ -212,8 +209,8 @@ export default function Profile() {
       {/* Hesap bilgileri */}
       <div className="bg-zinc-900 rounded-xl p-4 mt-4">
         <h3 className="font-semibold mb-2">Hesap Bilgisi</h3>
-        <p><strong>TON Cüzdan Adresi:</strong> {shortAddress || 'Bağlı değil'}</p>
-        <p><strong>Bakiyeniz:</strong> {tonBalance.toFixed(2)} TON</p>
+        <p><strong>TON Cüzdan Adresi:</strong> {kisaAdres || 'Bağlı değil'}</p>
+        <p><strong>Bakiyeniz:</strong> {tonBakiye.toFixed(2)} TON</p>
       </div>
     </div>
   );
