@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
 import { useRouter } from 'next/router';
-import { Address, fromNano, toNano } from '@ton/core';
+import { Address } from '@ton/core';
 
 // Çevresel değişkenlerden havuz adreslerini al
 const TON_POOL_WALLET = process.env.NEXT_PUBLIC_TON_POOL_WALLET || 'EQC_POOL_WALLET_ORNEK_ADRES';
@@ -82,6 +82,9 @@ export default function Profile() {
       const rawAddress = wallet.account.address;
       setIsConnected(true);
       setShortAddress(shortenAddress(formatTonAddress(rawAddress)));
+
+      // Cüzdan adresini localStorage'a kaydediyoruz
+      localStorage.setItem('connectedTonAddress', formatTonAddress(rawAddress));
       
       // Bakiye güncelleme
       getTonBalance(rawAddress).then(balance => {
