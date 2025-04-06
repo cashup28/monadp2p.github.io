@@ -1,30 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useTonConnectUI, TonConnectButton, useTonWallet } from '@tonconnect/ui-react';
-import { useRouter } from 'next/router';
+import { Address, toNano, fromNano } from '@ton/core';
 
 const TON_TO_MONAD_RATE = 8;  // 1 TON = 8 MONAD
 
 export default function Profile() {
   const [tonConnectUI] = useTonConnectUI();
   const wallet = useTonWallet();
-  const router = useRouter();
-
+  
   const [isConnected, setIsConnected] = useState(false);
-  const [userId, setUserId] = useState('user883121');
+  const [userId, setUserId] = useState(Math.floor(1000 + Math.random() * 9000));  // 4 haneli user ID
   const [tonBalance, setTonBalance] = useState(0);
   const [depositAmount, setDepositAmount] = useState('');
   const [monadAddress, setMonadAddress] = useState('');
   const [buyStatus, setBuyStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Kullanıcı ID setup'ı
-  useEffect(() => {
-    const storedUserId = localStorage.getItem('userId') || `user${Math.floor(100000 + Math.random() * 900000)}`;
-    localStorage.setItem('userId', storedUserId);
-    setUserId(storedUserId);
-  }, []);
-
-  // Cüzdan bağlantısını kontrol et ve bakiye al
+  // Cüzdan bağlantısını kontrol et
   useEffect(() => {
     if (wallet?.account?.address) {
       setIsConnected(true);
@@ -39,31 +31,64 @@ export default function Profile() {
       setBuyStatus('Lütfen geçerli bir TON miktarı ve MONAD adresi girin.');
       return;
     }
-    
-    // 1 TON = 8 MONAD dönüşüm oranı
+
     const monadAmount = parseFloat(depositAmount) * TON_TO_MONAD_RATE;
+
+    // 1 TON = 8 MONAD dönüşüm oranı
 
     setLoading(true);
 
-    // TON gönderimi ve MONAD adresine gönderilmesi işlemi simülasyonu
-    setTimeout(() => {
+    try {
+      // TON gönderimi başlatma
+      const tx = await wallet.sendTransaction({
+        to: process.env.TON_POOL_WALLET,  // Ton havuz adresi
+        amount: toNano(depositAmount),    // Transfer miktarı
+        data: '',  // Gerekli veri, buraya smart contract işlemleri eklenebilir
+      });
+
+      // MONAD adresine ödeme gönderme işlemi
+      const result = await sendMonadToAddress(monadAddress, monadAmount);  // Bu fonksiyon işlemi gerçekleştirecek
       setBuyStatus(`Ton: ${depositAmount} gönderildi, Monad adresine ${monadAmount.toFixed(2)} MONAD gönderilecek.`);
+      
+    } catch (error) {
+      setBuyStatus('İşlem sırasında hata oluştu.');
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
+  };
+
+  const sendMonadToAddress = async (address, amount) => {
+    // Burada Monad işlemi yapılacak. Örnek olarak bir API'ye istek gönderilecektir.
+    try {
+      const response = await fetch('/api/send-monad', {
+        method: 'POST',
+        body: JSON.stringify({ address, amount }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        return data;
+      } else {
+        throw new Error('MONAD transferi başarısız');
+      }
+    } catch (error) {
+      console.error('MONAD gönderim hatası:', error);
+      throw error;
+    }
   };
 
   return (
     <div className="min-h-screen bg-black text-white p-4 pt-[20vh]">
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={() => router.back()} className="bg-zinc-800 text-white rounded-full px-4 py-1">← Geri</button>
-        <h1 className="text-xl font-bold text-center w-full -ml-8">👤 Profil Sayfan</h1>
+      <div className="flex justify-center mb-4">
+        <h1 className="text-xl font-bold">👤 Profil Sayfan</h1>
       </div>
 
       <div className="mb-4">
         <p className="font-bold">Kullanıcı ID: {userId}</p>
       </div>
 
-      {/* TON Miktarı ve MONAD Adresi giriş alanları */}
       <div className="bg-zinc-900 rounded-xl p-4 mb-4">
         <h3 className="font-semibold mb-2">TON Miktarı</h3>
         <input
@@ -98,13 +123,11 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Hesap bilgisi */}
       <div className="bg-zinc-900 rounded-xl p-4">
         <h3 className="font-semibold mb-2">Hesap Bilgisi</h3>
         <p><strong>Bakiyeniz:</strong> {tonBalance.toFixed(2)} TON</p>
       </div>
 
-      {/* TonConnect Bağlantısı */}
       <div className="mt-2 flex justify-end">
         <TonConnectButton />
       </div>
