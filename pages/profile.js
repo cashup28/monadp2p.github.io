@@ -80,12 +80,13 @@ export default function Profile() {
   useEffect(() => {
     if (wallet?.account?.address) {
       const rawAddress = wallet.account.address;
+      const formattedAddress = formatTonAddress(rawAddress); // Formatlama işlemi
       setIsConnected(true);
-      setShortAddress(shortenAddress(formatTonAddress(rawAddress)));
+      setShortAddress(shortenAddress(formattedAddress));
 
       // Cüzdan adresini localStorage'a kaydediyoruz
-      localStorage.setItem('connectedTonAddress', formatTonAddress(rawAddress));
-      
+      localStorage.setItem('connectedTonAddress', formattedAddress);  // Burada adresi doğru formatta kaydediyoruz
+
       // Bakiye güncelleme
       getTonBalance(rawAddress).then(balance => {
         setTonBalance(balance);
